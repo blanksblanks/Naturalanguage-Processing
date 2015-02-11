@@ -1,8 +1,17 @@
+import nltk
+import string
+
 #a function that calculates unigram, bigram, and trigram probabilities
 #brown is a python list of the sentences
 #this function outputs three python dictionaries, where the key is a tuple expressing the ngram and the value is the log probability of that ngram
 #make sure to return three separate lists: one for each ngram
 def calc_probabilities(brown):
+    sentence = "I ate a slice of pizza and the pizza was tasty pizza."
+    tokens = nltk.word_tokenize(sentence)
+    tokens = [token.lower() for token in tokens if token not in string.punctuation]
+    print sentence
+    print [(item, tokens.count(item)) for item in set(tokens)]
+
     unigram_p = {}
     bigram_p = {}
     trigram_p = {}
