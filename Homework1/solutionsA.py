@@ -1,5 +1,7 @@
+from __future__ import division
 import nltk
 import string
+import math
 
 #a function that calculates unigram, bigram, and trigram probabilities
 #brown is a python list of the sentences
@@ -11,19 +13,34 @@ def calc_probabilities(brown):
     tokens = [token.lower() for token in tokens if token not in string.punctuation]
     print sentence
     numTokens = len(tokens)
-    numTokens = float(numTokens)
+    # numTokens = float(numTokens)
     print numTokens
    
-    unigram_c = [(item, tokens.count(item)) for item in set(tokens)]
+    # counts for each n-gram
+    unigram_count = {}
+    for item in set(tokens):
+        unigram_count[item] = tokens.count(item)
+    # unigram_c = [(item, tokens.count(item)) for item in set(tokens)]
+    print unigram_count
 
     # unigram: P(w) = c(w)/V = count of word / size of vocabulary
-    unigram_prob = [(item, (tokens.count(item)/numTokens)) for item in set(tokens)]
+    # unigram_prob = [(item, (tokens.count(item)/numTokens)) for item in set(tokens)]
+    unigram_prob = {}
+    for item in set(tokens):
+        unigram_prob[item] = tokens.count(item)/numTokens
     print unigram_prob
 
     bigram_tuples = tuple(nltk.bigrams(tokens))
     trigram_tuples = tuple(nltk.trigrams(token))
 
     # bigram: times appeared together / times word by itself
+    bigram_prob = {}
+    for item in set(bigram_tuples):
+        fword = item[0]
+        prob = bigram_tuples.count(item)/unigram_count[fword]
+        bigram_prob[item] = prob
+    print bigram_prob
+
     # count = {(item, (bigram_tuples.count(item)/unigram_c[(item[0])]) for item in set(bigram_tuples))}
     # print count
 
