@@ -6,11 +6,27 @@ import string
 #this function outputs three python dictionaries, where the key is a tuple expressing the ngram and the value is the log probability of that ngram
 #make sure to return three separate lists: one for each ngram
 def calc_probabilities(brown):
-    sentence = "I ate a slice of pizza and the pizza was tasty pizza."
+    sentence = "I ate a slice of the  pizza and the pizza was tasty pizza."
     tokens = nltk.word_tokenize(sentence)
     tokens = [token.lower() for token in tokens if token not in string.punctuation]
     print sentence
-    print [(item, tokens.count(item)) for item in set(tokens)]
+    numTokens = len(tokens)
+    numTokens = float(numTokens)
+    print numTokens
+   
+    unigram_c = [(item, tokens.count(item)) for item in set(tokens)]
+
+    # unigram: P(w) = c(w)/V = count of word / size of vocabulary
+    unigram_prob = [(item, (tokens.count(item)/numTokens)) for item in set(tokens)]
+    print unigram_prob
+
+    bigram_tuples = tuple(nltk.bigrams(tokens))
+    trigram_tuples = tuple(nltk.trigrams(token))
+
+    # bigram: times appeared together / times word by itself
+    # count = {(item, (bigram_tuples.count(item)/unigram_c[(item[0])]) for item in set(bigram_tuples))}
+    # print count
+
 
     unigram_p = {}
     bigram_p = {}
