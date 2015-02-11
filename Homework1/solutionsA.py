@@ -8,47 +8,63 @@ import math
 #this function outputs three python dictionaries, where the key is a tuple expressing the ngram and the value is the log probability of that ngram
 #make sure to return three separate lists: one for each ngram
 def calc_probabilities(brown):
-    sentence = "I ate a slice of the  pizza and the pizza was tasty pizza."
-    tokens = nltk.word_tokenize(sentence)
-    tokens = [token.lower() for token in tokens if token not in string.punctuation]
-    print sentence
-    numTokens = len(tokens)
+    unigram_c = {}
+    bigram_c = {}
+    trigram_c = {}
+    unigram_p = {}
+    bigram_p = {}
+    trigram_p = {}
+    count = 0
+    test = "I ate a slice of the  pizza and the pizza was tasty pizza. What?! It was good!"
+    for sentence in brown: # each sentence in brown corpus is one line
+        tokens = nltk.word_tokenize(sentence)
+        tokens.append('STOP')
+        count += 1
+        for word in tokens:
+            if word in unigram_c:
+                unigram_c[word] += 1 # if seen, increment its count
+            else:
+                unigram_c[word] = 1 # init value at 0
+    print unigram_c
+    # tokens = [token.lower() for token in tokens if token not in string.punctuation]
+    # print sentence
+    # numTokens = len(tokens)
     # numTokens = float(numTokens)
-    print numTokens
+    # print numTokens
    
     # counts for each n-gram
-    unigram_count = {}
-    for item in set(tokens):
-        unigram_count[item] = tokens.count(item)
+    # for item in set(unigram_c):
+    #    unigram_count[item] = tokens.count(item)
     # unigram_c = [(item, tokens.count(item)) for item in set(tokens)]
-    print unigram_count
+    # print unigram_count
 
     # unigram: P(w) = c(w)/V = count of word / size of vocabulary
     # unigram_prob = [(item, (tokens.count(item)/numTokens)) for item in set(tokens)]
-    unigram_prob = {}
-    for item in set(tokens):
-        unigram_prob[item] = tokens.count(item)/numTokens
-    print unigram_prob
+    # unigram_prob = {}
+    # for item in set(unigram_c):
+    #    unigram_prob[item] = math.log((unigram_c[item]/count),2)
+    # printd(unigram_prob)
 
-    bigram_tuples = tuple(nltk.bigrams(tokens))
-    trigram_tuples = tuple(nltk.trigrams(token))
+    # bigram_tuples = tuple(nltk.bigrams(tokens))
+    # trigram_tuples = tuple(nltk.trigrams(tokens)
 
     # bigram: times appeared together / times word by itself
-    bigram_prob = {}
-    for item in set(bigram_tuples):
-        fword = item[0]
-        prob = bigram_tuples.count(item)/unigram_count[fword]
-        bigram_prob[item] = prob
-    print bigram_prob
+    # bigram_prob = {}
+    # for item in set(bigram_tuples):
+    #    fword = item[0]
+    #    prob = bigram_tuples.count(item)/unigram_count[fword]
+    #    bigram_prob[item] = prob
+    # printd(bigram_prob)
 
     # count = {(item, (bigram_tuples.count(item)/unigram_c[(item[0])]) for item in set(bigram_tuples))}
     # print count
 
-
-    unigram_p = {}
-    bigram_p = {}
-    trigram_p = {}
     return unigram_p, bigram_p, trigram_p
+
+# helper method to print dictionary lineb y line
+def printd(dictionary):
+    for item in dictionary:
+        print item, ':', dictionary[item]
 
 #each ngram is a python dictionary where keys are a tuple expressing the ngram, and the value is the log probability of that ngram
 def q1_output(unigrams, bigrams, trigrams):
