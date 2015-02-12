@@ -54,14 +54,15 @@ def calc_probabilities(brown):
         prob = bigram_c[item]/unigram_c[word,]
         bigram_p[item] = math.log(prob,2)
     
+    # trigram:  
     for item in trigram_c:
         bigram = item[:-1]
         if bigram[1] is '*':
             prob = trigram_c[item]/unigram_c['STOP',]
-            print item, trigram_c[item], unigram_c['STOP',], prob, math.log(prob,2)
+        #  print item, trigram_c[item], unigram_c['STOP',], prob, math.log(prob,2)
         else:
             prob = trigram_c[item]/bigram_c[bigram]
-            print item, trigram_c[item], bigram_c[bigram], prob, math.log(prob,2)
+            # print item, trigram_c[item], bigram_c[bigram], prob, math.log(prob,2)
         trigram_p[item] = math.log(prob,2)
 
 #    print bigram_p, trigram_p
@@ -91,6 +92,17 @@ def q1_output(unigrams, bigrams, trigrams):
 #this function must return a python list of scores, where the first element is the score of the first sentence, etc. 
 def score(ngram_p, n, data):
     scores = []
+    for sentence in data:
+        tokens = nltk.word_tokenize(sentence)
+        tokens.append('STOP')
+        prob = 0
+        if n == 1:
+            for unigram in tokens:
+                prob += ngram_p[unigram,] # sum all log probabilities
+            scores.append(prob)
+        else:
+            scores = []
+    print scores
     return scores
 
 
