@@ -28,14 +28,14 @@ def calc_probabilities(brown):
                 unigram_c[word,] = 1 # init value at 0
         tokens.insert(0, '*')
         bigram_tuples = tuple(nltk.bigrams(tokens))
-        for bigram in set(bigram_tuples):
+        for bigram in bigram_tuples:
             if bigram in bigram_c:
                 bigram_c[bigram] += 1
             else:
                 bigram_c[bigram] = 1
         tokens.insert(0, '*')
         trigram_tuples = tuple(nltk.trigrams(tokens))
-        for trigram in set(trigram_tuples):
+        for trigram in trigram_tuples:
             if trigram in trigram_c:
                 trigram_c[trigram] += 1
             else:
