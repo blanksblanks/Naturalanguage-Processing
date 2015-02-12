@@ -42,10 +42,6 @@ def calc_probabilities(brown):
             else:
                 trigram_c[trigram] = 1
 
-    print totalCount
-    # print unigram_c
-    # print bigram_c
-    print unigram_c['STOP',]
     # unigram: P(w) = c(w)/V = count of word / size of vocabulary
     for item in unigram_c:
         unigram_p[item] = math.log((unigram_c[item]/totalCount),2)
@@ -56,14 +52,19 @@ def calc_probabilities(brown):
         if word is '*':
             word = 'STOP'
         prob = bigram_c[item]/unigram_c[word,]
-        print item, bigram_c[item], unigram_c[word,], prob
         bigram_p[item] = math.log(prob,2)
-    # for item in trigram_c:
-      #  bigram = item[:-1]
-       # if word is '**':
-        #    word = 
-        #trigram_p[item] = math.log((trigram_c[item]/bigram_c[word,]),2)
+    
+    for item in trigram_c:
+        bigram = item[:-1]
+        if bigram[1] is '*':
+            prob = trigram_c[item]/unigram_c['STOP',]
+            print item, trigram_c[item], unigram_c['STOP',], prob, math.log(prob,2)
+        else:
+            prob = trigram_c[item]/bigram_c[bigram]
+            print item, trigram_c[item], bigram_c[bigram], prob, math.log(prob,2)
+        trigram_p[item] = math.log(prob,2)
 
+#    print bigram_p, trigram_p
     return unigram_p, bigram_p, trigram_p
 
 # helper method to print dictionary lineb y line
