@@ -101,7 +101,7 @@ def score(ngram_p, n, data):
                 if (unigram,) in ngram_p:
                     prob += ngram_p[unigram,] # sum all log probabilities
                 else:
-                    prob = 1000
+                    prob = -1000.0
                     break
         elif n == 2:
             tokens.insert(0, '*')
@@ -110,7 +110,7 @@ def score(ngram_p, n, data):
                 if bigram in ngram_p:
                     prob += ngram_p[bigram]
                 else:
-                    prob = 1000
+                    prob = -1000.0
                     break
         elif n == 3:
             tokens.insert(0, '*')
@@ -120,7 +120,7 @@ def score(ngram_p, n, data):
                 if trigram in ngram_p:
                     prob += ngram_p[trigram]
                 else:
-                    prob = 1000
+                    prob = -1000.0
                     break
         scores.append(prob) 
     print scores
