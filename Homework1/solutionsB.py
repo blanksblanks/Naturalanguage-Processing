@@ -98,7 +98,13 @@ def q6_output(tagged):
 def split_wordtags(brown_train):
     wbrown = []
     tbrown = []
-     
+    for sentence in brown_train:
+        tokens = sentence.split()
+        for token in tokens:
+            wordtags = token.split('/')
+            wbrown.append(wordtags[0])
+            tbrown.append(wordtags[1])
+    print wbrown, tbrown
     return wbrown, tbrown
 
 def main():

@@ -15,7 +15,6 @@ def calc_probabilities(brown):
     bigram_p = {}
     trigram_p = {}
     totalCount = 0
-    test = "I ate a slice of the  pizza and the pizza was tasty pizza. What?! It was good!"
     
     # counts for each n-gram
     for sentence in brown: # each sentence in brown corpus is one line
