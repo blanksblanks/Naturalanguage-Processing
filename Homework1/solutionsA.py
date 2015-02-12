@@ -98,10 +98,31 @@ def score(ngram_p, n, data):
         prob = 0
         if n == 1:
             for unigram in tokens:
-                prob += ngram_p[unigram,] # sum all log probabilities
-            scores.append(prob)
-        else:
-            scores = []
+                if (unigram,) in ngram_p:
+                    prob += ngram_p[unigram,] # sum all log probabilities
+                else:
+                    prob = 1000
+                    break
+        elif n == 2:
+            tokens.insert(0, '*')
+            bigram_tuples = tuple(nltk.bigrams(tokens))
+            for bigram in bigram_tuples:
+                if bigram in ngram_p:
+                    prob += ngram_p[bigram]
+                else:
+                    prob = 1000
+                    break
+        elif n == 3:
+            tokens.insert(0, '*')
+            tokens.insert(0, '*')
+            trigram_tuples = tuple(nltk.trigrams(tokens))
+            for trigram in trigram_tuples:
+                if trigram in ngram_p:
+                    prob += ngram_p[trigram]
+                else:
+                    prob = 1000
+                    break
+        scores.append(prob) 
     print scores
     return scores
 
