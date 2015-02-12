@@ -123,7 +123,7 @@ def score(ngram_p, n, data):
                     prob = -1000.0
                     break
         scores.append(prob) 
-    print scores
+    # print scores
     return scores
 
 

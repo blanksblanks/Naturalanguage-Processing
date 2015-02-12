@@ -98,6 +98,7 @@ def q6_output(tagged):
 def split_wordtags(brown_train):
     wbrown = []
     tbrown = []
+     
     return wbrown, tbrown
 
 def main():
