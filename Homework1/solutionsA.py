@@ -16,12 +16,14 @@ def calc_probabilities(brown):
     trigram_p = {}
     totalCount = 0
     test = "I ate a slice of the  pizza and the pizza was tasty pizza. What?! It was good!"
+    
+    # counts for each n-gram
     for sentence in brown: # each sentence in brown corpus is one line
         tokens = nltk.word_tokenize(sentence)
         tokens.append('STOP')
         for word in tokens:
             totalCount += 1
-            if word in unigram_c:
+            if (word,) in unigram_c:
                 unigram_c[word,] += 1 # if seen, increment its count
             else:
                 unigram_c[word,] = 1 # init value at 0
@@ -39,41 +41,28 @@ def calc_probabilities(brown):
                 trigram_c[trigram] += 1
             else:
                 trigram_c[trigram] = 1
-    # print trigram_c
-    
-    
-    # tokens = [token.lower() for token in tokens if token not in string.punctuation]
-    # print sentence
-    # numTokens = len(tokens)
-    # numTokens = float(numTokens)
-    # print numTokens
-   
-    # counts for each n-gram
-    # for item in set(unigram_count):
-    #    unigram_count[item] = tokens.count(item)
-    # unigram_c = [(item, tokens.count(item)) for item in set(tokens)]
-    # print unigram_count
 
+    print totalCount
+    # print unigram_c
+    # print bigram_c
+    print unigram_c['STOP',]
     # unigram: P(w) = c(w)/V = count of word / size of vocabulary
-    # unigram_prob = [(item, (tokens.count(item)/numTokens)) for item in set(tokens)]
-    # unigram_prob = {}
     for item in unigram_c:
         unigram_p[item] = math.log((unigram_c[item]/totalCount),2)
-    # print unigram_p
-
-    # bigram_tuples = tuple(nltk.bigrams(tokens))
-    # trigram_tuples = tuple(nltk.trigrams(tokens)
 
     # bigram: times appeared together / times word by itself
-    # bigram_prob = {}
-    # for item in set(bigram_tuples):
-    #    fword = item[0]
-    #    prob = bigram_tuples.count(item)/unigram_count[fword]
-    #    bigram_prob[item] = prob
-    # printd(bigram_prob)
-
-    # count = {(item, (bigram_tuples.count(item)/unigram_c[(item[0])]) for item in set(bigram_tuples))}
-    # print count
+    for item in bigram_c:
+        word = item[0]
+        if word is '*':
+            word = 'STOP'
+        prob = bigram_c[item]/unigram_c[word,]
+        print item, bigram_c[item], unigram_c[word,], prob
+        bigram_p[item] = math.log(prob,2)
+    # for item in trigram_c:
+      #  bigram = item[:-1]
+       # if word is '**':
+        #    word = 
+        #trigram_p[item] = math.log((trigram_c[item]/bigram_c[word,]),2)
 
     return unigram_p, bigram_p, trigram_p
 
