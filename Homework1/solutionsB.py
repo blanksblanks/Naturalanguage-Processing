@@ -102,8 +102,11 @@ def split_wordtags(brown_train):
         tokens = sentence.split()
         for token in tokens:
             wordtags = token.split('/')
-            wbrown.append(wordtags[0])
-            tbrown.append(wordtags[1])
+            if len(wordtags) > 2:
+                wbrown.append('/'.join(wordtags[:-1]))
+            else:
+                wbrown.append(wordtags[0])
+            tbrown.append(wordtags[-1])
     print wbrown, tbrown
     return wbrown, tbrown
 
