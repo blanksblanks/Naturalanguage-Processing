@@ -141,6 +141,35 @@ def score_output(scores, filename):
 #like score(), this function returns a python list of scores
 def linearscore(unigrams, bigrams, trigrams, brown):
     scores = []
+    for sentence in brown:
+        tokens = nltk.word_tokenize(sentence)
+        tokens.append('STOP')
+        tokens.insert(0,'*')
+        tokens.insert(0,'*')
+        trigram_tuples = tuple(nltk.trigrams(tokens))
+        prob = 0
+        for trigram in trigram_tuples: # trigram: w_n | w_n-1, w_n-2
+            unigram = (trigram[2],) # unigram: w_n
+            bigram = (trigram[1],trigram[2]) # bigram: w_n | w_n-1
+            if unigram in unigrams:
+                uni_p = math.pow(2,unigrams[unigram])
+            else:
+                uni_p = 0
+            if bigram in bigrams:
+                bi_p = math.pow(2,bigrams[bigram])
+            else:
+                bi_p = 0
+            if trigram in trigrams:
+                tri_p = math.pow(2,trigrams[trigram])
+            else:
+                tri_p = 0
+            sum = uni_p + bi_p + tri_p
+            if sum == 0:
+                prob = -1000.0
+                break
+            else:
+                prob += math.log((1/3),2) + math.log(sum,2)
+        scores.append(prob)
     return scores
 
 def main():
