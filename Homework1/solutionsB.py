@@ -7,6 +7,13 @@ import math
 #wbrown is a python list where every element is a python list of the words of a particular sentence
 def calc_known(wbrown):
     knownwords = []
+    # copy word to list if its count is greater than 5
+    # knownwords = [word for word in set(wbrown) if wbrown.count(word) > 5] # TOO SLOW
+    for word in set(wbrown):
+        if wbrown.count(word) > 5:
+            print word, wbrown.count(word)
+            knownwords.append(word)
+    print knownwords
     # print wbrown
     return knownwords
 
