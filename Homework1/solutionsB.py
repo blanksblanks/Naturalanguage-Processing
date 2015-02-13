@@ -28,7 +28,11 @@ def q3_output(rare):
 #tbrown (the list of tags) should be a python list where every element is a python list of the tags of a particular sentence
 #it returns a python dictionary where the keys are tuples that represent the trigram, and the values are the log probability of that trigram
 def calc_trigrams(tbrown):
+    sentence = 'This is a sentence'
+    tokens = nltk.word_tokenize(sentence)
+    print tokens
     qvalues = {}
+    print tbrown
     return qvalues
 
 #this function takes output from calc_trigrams() and outputs it in the proper format
@@ -100,6 +104,9 @@ def split_wordtags(brown_train):
     tbrown = []
     for sentence in brown_train:
         tokens = sentence.split()
+        tokens.append('STOP/STOP')
+        tokens.insert(0, '*/*')
+        tokens.insert(0, '*/*')
         for token in tokens:
             wordtags = token.split('/')
             if len(wordtags) > 2:
