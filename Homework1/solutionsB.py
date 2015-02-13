@@ -11,10 +11,8 @@ def calc_known(wbrown):
     # knownwords = [word for word in set(wbrown) if wbrown.count(word) > 5] # TOO SLOW
     for word in set(wbrown):
         if wbrown.count(word) > 5:
-            print word, wbrown.count(word)
+            print word, wbrown.count(word) # log to convince self smth is happening
             knownwords.append(word)
-    # print knownwords
-    # print wbrown
     return knownwords
 
 #this function takes a set of sentences and a set of words that should not be marked '_RARE_'
@@ -23,23 +21,15 @@ def calc_known(wbrown):
 def replace_rare(brown, knownwords):
     rare = []
     sentence = []
-    print brown
     for word in brown:
         if word in knownwords:
-            # rare.append(word)
             sentence.append(word)
-            # if word is 'STOP' - DIDN'T WORK, WHY?
             if word == 'STOP': # detect sentence
-                sentence.append(word)
+                sentence.append(word) # TODO: find out why - if word is 'STOP' - DIDN'T WORK
                 rare.append(sentence) # add sentence to rare
                 sentence = [] # create empty list for next sentence
-            else:
-                print 'False', word
-                print sentence
         else:
-            # rare.append('_RARE_')
             sentence.append('_RARE_')
-    print rare
     return rare
 
 #this function takes the ouput from replace_rare and outputs it
