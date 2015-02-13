@@ -227,6 +227,15 @@ def main():
     infile.close()
 
     #format Brown development data here
+    brown_copy = []
+    for sentence in brown_dev:
+        tokens = nltk.word_tokenize(sentence)
+        tokens.insert(0, '*')
+        tokens.insert(0, '*')
+        tokens.append('STOP')
+        brown_copy.append(tokens)
+    brown_dev = brown_copy
+    del brown_copy
     print brown_dev
 
     #do viterbi on brown_dev (question 5)
@@ -237,7 +246,7 @@ def main():
 
     #do nltk tagging here
     nltk_tagged = nltk_tagger(brown_dev)
-
+    
     #question 6 output
     q6_output(nltk_tagged)
 if __name__ == "__main__": main()
