@@ -9,10 +9,19 @@ def calc_known(wbrown):
     knownwords = []
     # copy word to list if its count is greater than 5
     # knownwords = [word for word in set(wbrown) if wbrown.count(word) > 5] # TOO SLOW
-    for word in set(wbrown):
-        if wbrown.count(word) > 5:
-            print word, wbrown.count(word) # log to convince self smth is happening
-            knownwords.append(word)
+    # for word in set(wbrown):
+    #    if wbrown.count(word) > 5: # these counts make things too slow
+    #        print word, wbrown.count(word) # log to convince self smth is happening
+    #        knownwords.append(word)
+    word_c = {}
+    for word in wbrown:
+        if word in word_c:
+            word_c[word] += 1
+        else:
+            word_c[word] = 1
+    for word in word_c:
+        if word_c[word] > 5:
+            knownwords.append(word) 
     return knownwords
 
 #this function takes a set of sentences and a set of words that should not be marked '_RARE_'
@@ -21,15 +30,16 @@ def calc_known(wbrown):
 def replace_rare(brown, knownwords):
     rare = []
     sentence = []
+    print brown
     for word in brown:
         if word in knownwords:
             sentence.append(word)
-            if word == 'STOP': # detect sentence
-                sentence.append(word) # TODO: find out why - if word is 'STOP' - DIDN'T WORK
+            if word == 'STOP': # detect sentence - why doesn't this work? if word is 'STOP'
                 rare.append(sentence) # add sentence to rare
                 sentence = [] # create empty list for next sentence
         else:
             sentence.append('_RARE_')
+    print rare
     return rare
 
 #this function takes the ouput from replace_rare and outputs it
@@ -44,6 +54,11 @@ def q3_output(rare):
 #tbrown (the list of tags) should be a python list where every element is a python list of the tags of a particular sentence
 #it returns a python dictionary where the keys are tuples that represent the trigram, and the values are the log probability of that trigram
 def calc_trigrams(tbrown):
+    print tbrown[0]
+    print tbrown[1]
+    print tbrown[2]
+    print tbrown[-1]
+    
     qvalues = {}
     unigram_c = {}
     bigram_c = {}
@@ -83,7 +98,34 @@ def q2_output(qvalues):
 #tbrown is a python list where each element is a python list of the tags of a particular sentence
 def calc_emission(wbrown, tbrown):
     evalues = {}
-    taglist = []
+    taglist = [tag for tag in set(tbrown)]
+    pair_c = {}
+    tag_c = {}
+    # note: wbrown is wbrown_rare version
+    i = 0
+    for sentence in wbrown:
+        print sentence
+        for word in sentence: # could skip first *,* and last STOP
+            tag = tbrown[i]
+            print i, tag
+            i += 1 # now that tag is assigned, incr tag index for next iter
+            pair = (word, tag)
+            print pair
+            if pair in pair_c:
+                pair_c[pair] += 1
+            else:
+                pair_c[pair] = 1
+            # note: we could replace with list comp but this is cheaper in current loop
+            # tag_c = { tag : tbrown.count(tag) for tag in set(tbrown) }
+            if tag in tag_c:
+                tag_c[tag] += 1
+            else:
+                tag_c[tag] = 1
+    for pair in pair_c:
+        tag = pair[1]
+        prob = pair_c[pair]/tag_c[tag] # emission is count('word/tag') / count('tag')
+        evalues[pair] = math.log(prob, 2)
+
     return evalues, taglist
 
 #this function takes the output from calc_emissions() and outputs it
