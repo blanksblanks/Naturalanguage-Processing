@@ -7,7 +7,7 @@ import math
 #wbrown is a python list where every element is a python list of the words of a particular sentence
 def calc_known(wbrown):
     knownwords = []
-
+    # print wbrown
     return knownwords
 
 #this function takes a set of sentences and a set of words that should not be marked '_RARE_'
@@ -15,6 +15,7 @@ def calc_known(wbrown):
 #and outputs a version of the set of sentences with rare words marked '_RARE_'
 def replace_rare(brown, knownwords):
     rare = []
+    
     return rare
 
 #this function takes the ouput from replace_rare and outputs it
@@ -33,12 +34,6 @@ def calc_trigrams(tbrown):
     unigram_c = {}
     bigram_c = {}
     trigram_c = {}
-    # for tag in tbrown: # tbrown already comes as list
-    #    totalCount += 1
-    #    if (tag,) in unigram_c:
-    #        unigram_c[tag,] += 1
-    #    else:
-    #        unigram_c[tag,] = 1
     bigram_tuples = tuple(nltk.bigrams(tbrown))   
     for bigram in bigram_tuples:
         if bigram in bigram_c:
@@ -136,7 +131,7 @@ def split_wordtags(brown_train):
             else:
                 wbrown.append(wordtags[0])
             tbrown.append(wordtags[-1])
-    print wbrown, tbrown
+    # print wbrown, tbrown
     return wbrown, tbrown
 
 def main():
