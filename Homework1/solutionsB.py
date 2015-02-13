@@ -30,7 +30,7 @@ def calc_known(wbrown):
 def replace_rare(brown, knownwords):
     rare = []
     sentence = []
-    print brown
+    # print brown
     for word in brown:
         if word in knownwords:
             sentence.append(word)
@@ -39,7 +39,7 @@ def replace_rare(brown, knownwords):
                 sentence = [] # create empty list for next sentence
         else:
             sentence.append('_RARE_')
-    print rare
+    # print rare
     return rare
 
 #this function takes the ouput from replace_rare and outputs it
@@ -54,11 +54,6 @@ def q3_output(rare):
 #tbrown (the list of tags) should be a python list where every element is a python list of the tags of a particular sentence
 #it returns a python dictionary where the keys are tuples that represent the trigram, and the values are the log probability of that trigram
 def calc_trigrams(tbrown):
-    print tbrown[0]
-    print tbrown[1]
-    print tbrown[2]
-    print tbrown[-1]
-    
     qvalues = {}
     unigram_c = {}
     bigram_c = {}
@@ -104,13 +99,13 @@ def calc_emission(wbrown, tbrown):
     # note: wbrown is wbrown_rare version
     i = 0
     for sentence in wbrown:
-        print sentence
+        # print sentence
         for word in sentence: # could skip first *,* and last STOP
             tag = tbrown[i]
-            print i, tag
+            # print i, tag
             i += 1 # now that tag is assigned, incr tag index for next iter
             pair = (word, tag)
-            print pair
+            # print pair
             if pair in pair_c:
                 pair_c[pair] += 1
             else:
@@ -232,6 +227,7 @@ def main():
     infile.close()
 
     #format Brown development data here
+    print brown_dev
 
     #do viterbi on brown_dev (question 5)
     viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
