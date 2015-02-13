@@ -6,6 +6,16 @@ Assignment 1 Readme
 
 Runtime information
 
+nb2406@delhi:~/hidden/5281122421/Homework1$ time python solutionsA.py
+
+real  0m53.909s
+user  0m50.939s
+sys 0m0.308s
+
+real  7m5.337s
+user  7m1.430s
+sys 0m0.288s`:
+
 nb2406@paris:~/hidden/5281122421/Homework1$ python perplexity.py A2.uni.txt
 Brown_train.txt
 The perplexity is 1104.83292814
@@ -19,3 +29,10 @@ nb2406@paris:~/hidden/5281122421/Homework1$ python perplexity.py A3.txt
 Brown_train.txt
 The perplexity is 13.0759217039
 
+A 5)
+nb2406@sofia:~/hidden/5281122421/Homework1$ python perplexity.py
+Sample1_scored.txt Sample1.txt
+The perplexity is 11.6492786046
+nb2406@sofia:~/hidden/5281122421/Homework1$ python perplexity.py
+Sample2_scored.txt Sample2.txt
+The perplexity is 1611241155.03
