@@ -1,3 +1,4 @@
+from __future__ import division
 import sys
 import nltk
 import math
@@ -28,11 +29,32 @@ def q3_output(rare):
 #tbrown (the list of tags) should be a python list where every element is a python list of the tags of a particular sentence
 #it returns a python dictionary where the keys are tuples that represent the trigram, and the values are the log probability of that trigram
 def calc_trigrams(tbrown):
-    sentence = 'This is a sentence'
-    tokens = nltk.word_tokenize(sentence)
-    print tokens
     qvalues = {}
-    print tbrown
+    unigram_c = {}
+    bigram_c = {}
+    trigram_c = {}
+    # for tag in tbrown: # tbrown already comes as list
+    #    totalCount += 1
+    #    if (tag,) in unigram_c:
+    #        unigram_c[tag,] += 1
+    #    else:
+    #        unigram_c[tag,] = 1
+    bigram_tuples = tuple(nltk.bigrams(tbrown))   
+    for bigram in bigram_tuples:
+        if bigram in bigram_c:
+            bigram_c[bigram] += 1
+        else:
+            bigram_c[bigram] = 1
+    trigram_tuples = tuple(nltk.trigrams(tbrown))
+    for trigram in trigram_tuples:
+        if trigram in trigram_c:
+            trigram_c[trigram] += 1
+        else:
+            trigram_c[trigram] = 1
+    for trigram in trigram_c:
+        bigram = trigram[:-1]
+        prob = trigram_c[trigram]/bigram_c[bigram]
+        qvalues[trigram] = math.log(prob,2)
     return qvalues
 
 #this function takes output from calc_trigrams() and outputs it in the proper format
