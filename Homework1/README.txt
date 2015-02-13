@@ -36,3 +36,10 @@ The perplexity is 11.6492786046
 nb2406@sofia:~/hidden/5281122421/Homework1$ python perplexity.py
 Sample2_scored.txt Sample2.txt
 The perplexity is 1611241155.03
+
+perf(solutionsB.py): reduce runtime avg ~26 to 1m26 (more)
+ - by removing python's built-in count method and writing own
+  - fix: double 'STOP' production in replace_rare method so words match tag
+    indices
+     - feat: accurately calculate emission probabilities
+
