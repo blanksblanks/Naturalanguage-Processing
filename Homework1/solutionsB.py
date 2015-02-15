@@ -145,13 +145,16 @@ def q4_output(evalues):
 def viterbi(brown, taglist, knownwords, qvalues, evalues):
     tagged = []
     # our four look up tables: qvalues, evalues, pi and bp
-    pi = {} # key: (k, v, w)
-    bp = {}
-    pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
-    print taglist, knownwords, qvalues, evalues
+    # pi = {} # key: (k, v, w)
+    # bp = {}
+    # pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
+    # print taglist, knownwords, qvalues, evalues
     test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
-    for sentence in brown[:10]:
+    for sentence in brown[:2]:
         n = len(sentence) - 3
+        pi = {}
+        pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
+        bp = {}
         for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
             if sentence[k+1] not in knownwords: # replace with rare
                 word = '_RARE_'
@@ -208,7 +211,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         
         prev = -1000.0
         endtags = []
-        y = []
+        sentence_tags = []
         print pi
         print bp
         w = 'STOP'
@@ -230,25 +233,34 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                         finalu = u
                         finalv = v
                         print 'y!'
-                        print y
+                        print sentence_tags
         # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
         # [0,1,2,3,4,5,6]
-        y.append(finalu)
-        y.append(finalv)
-        y.append('STOP')
+        sentence_tags.append(finalu)
+        sentence_tags.append(finalv)
+        sentence_tags.append('STOP')
         print 'Y!!!!!!!!!!!!'
-        print y
+        print sentence_tags
 
         for k in range(n, 0, -1):
-            v = y[0]
-            w = y[1]
+            v = sentence_tags[0]
+            w = sentence_tags[1]
             backpointer = bp[k,v,w]
-            y.insert(0, backpointer)
+            sentence_tags.insert(0, backpointer)
             print 'new y'
             print k, v, w, backpointer
         print 'y???'
-        print y
-        tagged.append(y)
+        print sentence_tags
+        
+        tagged_sentence = ''
+        y = len(sentence_tags)
+        for index in range(2, y - 1):
+            pair = sentence[index] + '/' + sentence_tags[index] + ' '
+            tagged_sentence += pair
+        # pair = sentence[y-2] + '/' + sentence_tags[y-2] + '\n'
+        tagged_sentence += '\n' # pair
+
+        tagged.append(tagged_sentence)
 
     print tagged
     return tagged
