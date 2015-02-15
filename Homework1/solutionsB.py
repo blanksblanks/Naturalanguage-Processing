@@ -152,7 +152,6 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
     test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
     for sentence in test:
         n = len(sentence) - 3
-        y = []
         for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
             if sentence[k+1] not in knownwords: # replace with rare
                 word = '_RARE_'
@@ -209,6 +208,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         
         prev = -1000.0
         endtags = []
+        y = []
         print pi
         print bp
         w = 'STOP'
@@ -227,21 +227,26 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                         prev = prob
                         print 'ENDTAGS!'
                         print u, v
-                        endtags.append(u)
-                        endtags.append(v)
-                        print endtags
+                        finalu = u
+                        finalv = v
+                        print 'y!'
+                        print y
         # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
         # [0,1,2,3,4,5,6]
-        print endtags
-        y.extend(endtags)
+        y.append(finalu)
+        y.append(finalv)
         y.append('STOP')
         print 'Y!!!!!!!!!!!!'
         print y
 
-        for k in range(n-1, 0, -1):
-            backpointer = bp(k+2,y[k+1],y[k+2])
+        for k in range(n, 0, -1):
+            v = y[0]
+            w = y[1]
+            backpointer = bp[k,v,w]
             y.insert(0, backpointer)
-       
+            print 'new y'
+            print k, v, w, backpointer
+        print 'y???'
         print y
         tagged.append(y)
 
