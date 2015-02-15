@@ -150,7 +150,8 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
     # pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
     # print taglist, knownwords, qvalues, evalues
     test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
-    for sentence in brown[:2]:
+    counter = 0
+    for sentence in brown: #[:2]:
         n = len(sentence) - 3
         pi = {}
         pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
@@ -158,7 +159,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
             if sentence[k+1] not in knownwords: # replace with rare
                 word = '_RARE_'
-                print 'found RAREWORD'
+                # print 'found RAREWORD'
             else:
                 word = sentence[k+1]
             
@@ -166,32 +167,32 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                 u = v = '*'
                 for wtag in taglist:
                     w = wtag
-                    print k, u, v, w
+                    # print k, u, v, w
                     if (u,v,w) in qvalues and (word,w) in evalues:
-                        print 'NEW PI VALUE?!'
+                        # print 'NEW PI VALUE?!'
                         prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
                         if (k,v,w) not in pi or prob > pi[k,v,w]:
                             pi[k,v,w] = prob
                             bp[k,v,w] = u
-                            print 'NEW PI ALERT!'
-                            print k, pi, bp
+                           #  print 'NEW PI ALERT!'
+                            # print k, pi, bp
             
             elif k == 2:
-                print 'k = 2'
+               # print 'k = 2'
                 u = '*'
                 for vtag in taglist:
                     v = vtag
                     for wtag in taglist:
                         w = wtag
-                        print k, v, w, u
+                        # print k, v, w, u
                         if (u,v,w) in qvalues and (word,w) in evalues and (k-1,u,v) in pi:
-                            print 'NEW PI VALUE?'
+                            # print 'NEW PI VALUE?'
                             prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
                             if (k,v,w) not in pi or prob > pi[k,v,w]:
                                 pi[k,v,w] = prob
                                 bp[k,v,w] = u
-                                print 'NEW PI ALERT!'
-                                print k, pi, bp
+                                # print 'NEW PI ALERT!'
+                                # print k, pi, bp
             else:
                 for utag in taglist:
                     u = utag
@@ -199,59 +200,64 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                         v = vtag
                         for wtag in taglist:
                             w = wtag
-                            print k,v,w,u
+                           # print k,v,w,u
                             if (u,v,w) in qvalues and (word,w) in evalues and (k-1,u,v) in pi:
-                                print 'NEW PI VALUE?!'
+                               #  print k,v,w,u
+                               # print 'NEW PI VALUE?!'
                                 prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
                                 if (k,v,w) not in pi or prob > pi[k,v,w]:
                                     pi[k,v,w] = prob
                                     bp[k,v,w] = u
-                                    print 'NEW PI ALERT!'
-                                    print k, pi, bp
+                     #               print 'NEW PI ALERT!'
+                                    print k,v,w,u
+                                   # print k, pi, bp
         
         prev = -1000.0
         endtags = []
         sentence_tags = []
-        print pi
-        print bp
+       # print pi
+        #print bp
         w = 'STOP'
         for utag in taglist:
             u = utag
             for vtag in taglist:
                 v = vtag
-                print u,v,w
-                print n,u,v
+  #              print u,v,w
+   #             print n,u,v
                 if (u,v,w) in qvalues and (n,u,v) in pi:
-                    print qvalues[u,v,w], pi[n,u,v]
-                    print 'STOP - reached end?'
+                    # print qvalues[u,v,w], pi[n,u,v]
+                   # print 'STOP - reached end?'
                     prob = pi[n,u,v] + qvalues[u,v,w]
                     if prob > prev:
-                        print prob, prev
+                       # print prob, prev
                         prev = prob
-                        print 'ENDTAGS!'
-                        print u, v
+                       #  print 'ENDTAGS!'
+                       # print u, v
                         finalu = u
                         finalv = v
-                        print 'y!'
-                        print sentence_tags
+                        # print 'y!'
+                       # print sentence_tags
         # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
         # [0,1,2,3,4,5,6]
         sentence_tags.append(finalu)
         sentence_tags.append(finalv)
         sentence_tags.append('STOP')
-        print 'Y!!!!!!!!!!!!'
-        print sentence_tags
+        # print 'Y!!!!!!!!!!!!'
+        # print sentence_tags
 
         for k in range(n, 0, -1):
             v = sentence_tags[0]
             w = sentence_tags[1]
             backpointer = bp[k,v,w]
             sentence_tags.insert(0, backpointer)
-            print 'new y'
-            print k, v, w, backpointer
-        print 'y???'
-        print sentence_tags
+           # print 'new y'
+            #print k, v, w, backpointer
+        #print 'y???'
+        #print sentence_tags
         
+        del pi
+        del bp
+
         tagged_sentence = ''
         y = len(sentence_tags)
         for index in range(2, y - 1):
@@ -259,6 +265,11 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
             tagged_sentence += pair
         # pair = sentence[y-2] + '/' + sentence_tags[y-2] + '\n'
         tagged_sentence += '\n' # pair
+        
+        
+        print '========================================================ANOTHER COMPLETE! out of 1000, so far done: '
+        print counter
+        print tagged_sentence
 
         tagged.append(tagged_sentence)
 
