@@ -144,6 +144,108 @@ def q4_output(evalues):
 #tagged is a list of tagged sentences in the format "WORD/TAG". Each sentence is a string with a terminal newline, not a list of tokens.
 def viterbi(brown, taglist, knownwords, qvalues, evalues):
     tagged = []
+    # our four look up tables: qvalues, evalues, pi and bp
+    pi = {} # key: (k, v, w)
+    bp = {}
+    pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
+    print taglist, knownwords, qvalues, evalues
+    test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
+    for sentence in test:
+        n = len(sentence) - 3
+        y = []
+        for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
+            if sentence[k+1] not in knownwords: # replace with rare
+                word = '_RARE_'
+                print 'found RAREWORD'
+            else:
+                word = sentence[k+1]
+            
+            if k == 1: # u = s_-1 = s_0 = '*'
+                u = v = '*'
+                for wtag in taglist:
+                    w = wtag
+                    print k, u, v, w
+                    if (u,v,w) in qvalues and (word,w) in evalues:
+                        print 'NEW PI VALUE?!'
+                        prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
+                        if (k,v,w) not in pi or prob > pi[k,v,w]:
+                            pi[k,v,w] = prob
+                            bp[k,v,w] = u
+                            print 'NEW PI ALERT!'
+                            print k, pi, bp
+            
+            elif k == 2:
+                print 'k = 2'
+                u = '*'
+                for vtag in taglist:
+                    v = vtag
+                    for wtag in taglist:
+                        w = wtag
+                        print k, v, w, u
+                        if (u,v,w) in qvalues and (word,w) in evalues and (k-1,u,v) in pi:
+                            print 'NEW PI VALUE?'
+                            prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
+                            if (k,v,w) not in pi or prob > pi[k,v,w]:
+                                pi[k,v,w] = prob
+                                bp[k,v,w] = u
+                                print 'NEW PI ALERT!'
+                                print k, pi, bp
+            else:
+                for utag in taglist:
+                    u = utag
+                    for vtag in taglist:
+                        v = vtag
+                        for wtag in taglist:
+                            w = wtag
+                            print k,v,w,u
+                            if (u,v,w) in qvalues and (word,w) in evalues and (k-1,u,v) in pi:
+                                print 'NEW PI VALUE?!'
+                                prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
+                                if (k,v,w) not in pi or prob > pi[k,v,w]:
+                                    pi[k,v,w] = prob
+                                    bp[k,v,w] = u
+                                    print 'NEW PI ALERT!'
+                                    print k, pi, bp
+        
+        prev = -1000.0
+        endtags = []
+        print pi
+        print bp
+        w = 'STOP'
+        for utag in taglist:
+            u = utag
+            for vtag in taglist:
+                v = vtag
+                print u,v,w
+                print n,u,v
+                if (u,v,w) in qvalues and (n,u,v) in pi:
+                    print qvalues[u,v,w], pi[n,u,v]
+                    print 'STOP - reached end?'
+                    prob = pi[n,u,v] + qvalues[u,v,w]
+                    if prob > prev:
+                        print prob, prev
+                        prev = prob
+                        print 'ENDTAGS!'
+                        print u, v
+                        endtags.append(u)
+                        endtags.append(v)
+                        print endtags
+        # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
+        # [0,1,2,3,4,5,6]
+        print endtags
+        y.extend(endtags)
+        y.append('STOP')
+        print 'Y!!!!!!!!!!!!'
+        print y
+
+        for k in range(n-1, 0, -1):
+            backpointer = bp(k+2,y[k+1],y[k+2])
+            y.insert(0, backpointer)
+       
+        print y
+        tagged.append(y)
+
+    print tagged
     return tagged
 
 #this function takes the output of viterbi() and outputs it
@@ -236,7 +338,7 @@ def main():
         brown_copy.append(tokens)
     brown_dev = brown_copy
     del brown_copy
-    print brown_dev
+    # print brown_dev
 
     #do viterbi on brown_dev (question 5)
     viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
