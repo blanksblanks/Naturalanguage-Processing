@@ -150,7 +150,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
     pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
     print taglist, knownwords, qvalues, evalues
     test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
-    for sentence in test:
+    for sentence in brown[:10]:
         n = len(sentence) - 3
         for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
             if sentence[k+1] not in knownwords: # replace with rare
