@@ -218,10 +218,10 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                                     pi[k,v,w] = prob
                                     bp[k,v,w] = u
                      #              print 'NEW PI ALERT!'
-                                    print n,k,v,w,u
+                                    print n,k,u,v,w
                                    # print k, pi, bp
         
-        prev = -1000.0
+        prev = -2000.0 #OMG
         endtags = []
         sentence_tags = []
         print pi
@@ -233,25 +233,29 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                 v = vtag
   #              print u,v,w
    #             print n,u,v
-                if (n,u,v) in pi:
-                    print n,u,v, pi[n,u,v]
+                if (n,u,v) in bp:
+                    print n,u,v, bp[n,u,v]
+                    print 'exists in BP'
                     # print qvalues[u,v,w], pi[n,u,v]
                    # print 'STOP - reached end?'
                     if (u,v,w) not in qvalues:
                         prob = -1000.0
                     else:
                         prob = pi[n,u,v] + qvalues[u,v,w]
-                    if prob > prev:
-                       # print prob, prev
+                    if prob > prev: # tie breaker if both 1000?
+                        print 'prob > prev, set finalu and finalv'
                         prev = prob
-                       #  print 'ENDTAGS!'
-                       # print u, v
                         finalu = u
                         finalv = v
+                        print finalu, finalv
+                       # print prob, prev
+                       #  print 'ENDTAGS!'
+                       # print u, v
                         # print 'y!'
                        # print sentence_tags
         # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
         # [0,1,2,3,4,5,6]
+        print finalu, finalv
         sentence_tags.append(finalu)
         sentence_tags.append(finalv)
         sentence_tags.append('STOP')
