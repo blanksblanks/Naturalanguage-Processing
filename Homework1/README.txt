@@ -43,3 +43,13 @@ perf(solutionsB.py): reduce runtime avg ~26 to 1m26 (more)
     indices
      - feat: accurately calculate emission probabilities
 
+5B:
+real  12m29.693s
+user  4m12.736s
+sys 0m16.577s
+nb2406@tokyo:~/hidden/5281122421/Homework1$ python pos B5.txt
+Brown_tagged_dev.txt
+python: can't open file 'pos': [Errno 2] No such file or directory
+nb2406@tokyo:~/hidden/5281122421/Homework1$ python pos.py B5.txt
+Brown_tagged_dev.txt
+Percent correct tags: 93.6921615938
