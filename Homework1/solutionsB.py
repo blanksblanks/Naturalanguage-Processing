@@ -265,11 +265,47 @@ def q5_output(tagged):
 #tagged is a list of tagged sentences the WORD/TAG format. Each sentence is a string with a terminal newline rather than a list of tokens.
 def nltk_tagger(brown):
     tagged = []
+    counter = 0
+
+    #import the corpus from NLTK and build the training set from sentences in 'news'
+    training=nltk.corpus.brown.tagged_sents(tagset='universal')
+
+    # set up hierarchy of taggers
+    default_tagger = nltk.DefaultTagger('NOUN')
+    bigram_tagger = nltk.BigramTagger(training, backoff=default_tagger)
+    trigram_tagger = nltk.TrigramTagger(training, backoff=bigram_tagger)
+
+    for sentence in brown:
+        sentence_tags = trigram_tagger.tag(sentence)
+        # print sentence_tags
+
+        tagged_sentence = []
+        y = len(sentence_tags)
+        for index in range (2, y-1):
+            tag_tuple = sentence_tags[index]
+            # print tag_tuple
+            pair = tag_tuple[0] + '/' + tag_tuple[1] + ' '
+            # print pair
+            tagged_sentence.append(pair)
+        counter += 1
+        print '====================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
+        print tagged_sentence
+   
+        tagged.append(tagged_sentence)
+
     return tagged
+'''
+    training = brown.tagged_sents(categories='news')
+    #Create Unigram, Bigram, Trigram taggers based on the training set.
+    unigram_tagger = nltk.UnigramTagger(training)
+    bigram_tagger = nltk.BigramTagger(training)
+    trigram_tagger = nltk.TrigramTagger(training)
+'''
 
 def q6_output(tagged):
     outfile = open('B6.txt', 'w')
     for sentence in tagged:
+        output = ' '.join(sentence) + '\n'
         outfile.write(output)
     outfile.close()
 
@@ -346,10 +382,10 @@ def main():
     # print brown_dev
 
     #do viterbi on brown_dev (question 5)
-    viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
+    # viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
 
     #question 5 output
-    q5_output(viterbi_tagged)
+    # q5_output(viterbi_tagged)
 
     #do nltk tagging here
     nltk_tagged = nltk_tagger(brown_dev)
