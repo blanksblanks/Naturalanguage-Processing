@@ -159,37 +159,28 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         for k in range(1, n+1): # u @ k - 2, v @ k - 1, w @ k
             if sentence[k+1] not in knownwords: # replace with rare
                 word = '_RARE_'
-                # print 'found RAREWORD'
             else:
                 word = sentence[k+1]
-            
+
             if k == 1: # u = s_-1 = s_0 = '*'
                 u = v = '*'
                 for wtag in taglist:
                     w = wtag
-                    # print k, u, v, w
                     if (word,w) in evalues:    
                         if (u,v,w) in qvalues: # no need to check evalues bc of smoothing
-                            # print 'NEW PI VALUE?!'
                             prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
                         else:
                             prob = -1000.0
                         if (k,v,w) not in pi or prob > pi[k,v,w]:
                             pi[k,v,w] = prob
                             bp[k,v,w] = u
-                               #  print 'NEW PI ALERT!'
-                            # print k, pi, bp
-            
             elif k == 2:
-               # print 'k = 2'
                 u = '*'
                 for vtag in taglist:
                     v = vtag
                     for wtag in taglist:
                         w = wtag
-                        # print k, v, w, u
                         if (word,w) in evalues and (k-1,u,v) in pi and (word,w):
-                            # print 'NEW PI VALUE?'
                             if (u,v,w) not in qvalues:
                                 prob = -1000.0
                             else:
@@ -197,8 +188,6 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                             if (k,v,w) not in pi or prob > pi[k,v,w]:
                                 pi[k,v,w] = prob
                                 bp[k,v,w] = u
-                                # print 'NEW PI ALERT!'
-                                # print k, pi, bp
             else:
                 for utag in taglist:
                     u = utag
@@ -206,77 +195,46 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                         v = vtag
                         for wtag in taglist:
                             w = wtag
-                           # print k,v,w,u
                             if (word,w) in evalues and (k-1,u,v) in pi:
                                 if (u,v,w) not in qvalues:
                                     prob = -1000.0
                                 else:
-                               #  print k,v,w,u
-                               # print 'NEW PI VALUE?!'
                                     prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
                                 if (k,v,w) not in pi or prob > pi[k,v,w]:
                                     pi[k,v,w] = prob
                                     bp[k,v,w] = u
-                     #              print 'NEW PI ALERT!'
-                                    print n,k,u,v,w
-                                   # print k, pi, bp
         
         prev = -2000.0 #OMG
         endtags = []
         sentence_tags = []
-        print pi
-        print bp
         w = 'STOP'
         for utag in taglist:
             u = utag
             for vtag in taglist:
                 v = vtag
-  #              print u,v,w
-   #             print n,u,v
                 if (n,u,v) in bp:
-                    print n,u,v, bp[n,u,v]
-                    print 'exists in BP'
-                    # print qvalues[u,v,w], pi[n,u,v]
-                   # print 'STOP - reached end?'
                     if (u,v,w) not in qvalues:
                         prob = -1000.0
                     else:
                         prob = pi[n,u,v] + qvalues[u,v,w]
-                    if prob > prev: # tie breaker if both 1000?
-                        print 'prob > prev, set finalu and finalv'
+                    if prob >= prev: # tie breaker if both 1000? replace or don't
                         prev = prob
                         finalu = u
                         finalv = v
-                        print finalu, finalv
-                       # print prob, prev
-                       #  print 'ENDTAGS!'
-                       # print u, v
-                        # print 'y!'
-                       # print sentence_tags
-        # [*,*,N,V,N,V,STOP] equivalent to y0, y1, y2...y
-        # [0,1,2,3,4,5,6]
-        print finalu, finalv
+        
+        # [*,*,N,V,#N,V,STOP] equivalent to y0, y1, y2...y = [0,1,2,3,4,5,6]
         sentence_tags.append(finalu)
         sentence_tags.append(finalv)
         sentence_tags.append('STOP')
-        # print 'Y!!!!!!!!!!!!'
-        # print sentence_tags
-        print sentence
-        print 'Sentence with a length of '
-        n = len(sentence) - 3
-        print len(sentence), n
+        # n = len(sentence) - 3
         
         for k in range(n, 0, -1):
             v = sentence_tags[0]
             w = sentence_tags[1]
             backpointer = bp[k,v,w]
             sentence_tags.insert(0, backpointer)
-           # print 'new y'
-            #print k, v, w, backpointer
-        #print 'y???'
-        #print sentence_tags
         
-        del pi
+        del pi # is this necessary?
         del bp
 
         tagged_sentence = ''
@@ -284,18 +242,15 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         for index in range(2, y - 1):
             pair = sentence[index] + '/' + sentence_tags[index] + ' '
             tagged_sentence += pair
-        # pair = sentence[y-2] + '/' + sentence_tags[y-2] + '\n'
+        # pair = sentence[y-2] + '/' + sentence_tags[y-2] + '\n' # class output includes space after .
         tagged_sentence += '\n' # pair
         
-        
-        print '========================================================ANOTHER COMPLETE! out of 1000, so far done: '
         counter += 1
-        print counter
+        print '====================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
         print tagged_sentence
 
         tagged.append(tagged_sentence)
 
-    print tagged
     return tagged
 
 #this function takes the output of viterbi() and outputs it
