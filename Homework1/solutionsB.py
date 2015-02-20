@@ -294,13 +294,6 @@ def nltk_tagger(brown):
         tagged.append(tagged_sentence)
 
     return tagged
-'''
-    training = brown.tagged_sents(categories='news')
-    #Create Unigram, Bigram, Trigram taggers based on the training set.
-    unigram_tagger = nltk.UnigramTagger(training)
-    bigram_tagger = nltk.BigramTagger(training)
-    trigram_tagger = nltk.TrigramTagger(training)
-'''
 
 def q6_output(tagged):
     outfile = open('B6.txt', 'w')
@@ -382,10 +375,10 @@ def main():
     # print brown_dev
 
     #do viterbi on brown_dev (question 5)
-    # viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
+    viterbi_tagged = viterbi(brown_dev, taglist, knownwords, qvalues, evalues)
 
     #question 5 output
-    # q5_output(viterbi_tagged)
+    q5_output(viterbi_tagged)
 
     #do nltk tagging here
     nltk_tagged = nltk_tagger(brown_dev)
