@@ -82,6 +82,19 @@ It won't work
 Part B - Part of Speech Tagging (runtime < 5 minutes)
 =====================================================================
 
+Taggers are evaluated by comparing their output from a test set to human
+labels for that test set. In this case, we compare the percentage of correct
+part-of-speech tags produced by our machine taggers with the human labels
+for that tag set (Brown_tagged_dev.txt). In the case of my HMM tagger, which
+implements the Viterbi algorithm, 93.69% of tags matched the human tagged
+or 'correct' set - this seems quite good. It seems that calculating emission
+probabilities and trigram probabilities in the sequence with smoothing for
+rare words is  fairlyn effective way of tagging parts of speech. However, when we
+compare that 95.31% correct tags the NLTK trigram tagger with backoffs - from trigram to bigram to
+default 'NOUN' tags -  came up with, we realize the HMM tagger could still use
+some improvement. What improvements to make could be decided after an error
+analysis to pinpoint areas where the tagger does not perform well.
+
 5) POS% of my HMM tagger
 
     $ python pos.py B5.txt Brown_tagged_dev.txt
