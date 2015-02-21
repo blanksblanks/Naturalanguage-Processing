@@ -149,8 +149,8 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
     # bp = {}
     # pi[0,'*','*'] = 0.0 # base case: 1, math.log(1,2) = 0
     # print taglist, knownwords, qvalues, evalues
-    test = [['*','*','We','saw','her','duck','.','STOP'],['*','*','I','gave','her','cat','food','.','STOP']]
-    counter = 0
+    #test = [['*','*','We','saw','her','duck','.','STOP']]
+    #counter = 0
     for sentence in brown: #[:2]:
         n = len(sentence) - 3
         pi = {}
@@ -162,20 +162,21 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
             else:
                 word = sentence[k+1]
 
-            if k == 1: # u = s_-1 = s_0 = '*'
-                u = v = '*'
+            if k == 1: # u = s_-1 = s_0 = '*' our base case
+                u = v = '*' # two previous tags are stars
                 for wtag in taglist:
-                    w = wtag
-                    if (word,w) in evalues:    
-                        if (u,v,w) in qvalues: # no need to check evalues bc of smoothing
+                    w = wtag # just go through possible tags for current word
+                    if (word,w) in evalues: # if word has this tag in evalues
+                        if (u,v,w) in qvalues: # check if this is in trigram val and calc prob
                             prob = pi[k-1,u,v] + qvalues[u,v,w] + evalues[word,w]
-                        else:
+                        else: # if the trigram is not found set probability to log 0
                             prob = -1000.0
-                        if (k,v,w) not in pi or prob > pi[k,v,w]:
+                        # if first time seeing this pi tuple or its probability > curr dict val
+                        if (k,v,w) not in pi or prob > pi[k,v,w]: # add it to the pi dictionary
                             pi[k,v,w] = prob
                             bp[k,v,w] = u
-            elif k == 2:
-                u = '*'
+            elif k == 2: # do the same thing as before except both v and w tags can change
+                u = '*' # only u is known = star
                 for vtag in taglist:
                     v = vtag
                     for wtag in taglist:
@@ -188,7 +189,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
                             if (k,v,w) not in pi or prob > pi[k,v,w]:
                                 pi[k,v,w] = prob
                                 bp[k,v,w] = u
-            else:
+            else: # do same as above except u,v,w can all change, but prev pi value memoized
                 for utag in taglist:
                     u = utag
                     for vtag in taglist:
@@ -207,7 +208,7 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         prev = -2000.0 #OMG
         endtags = []
         sentence_tags = []
-        w = 'STOP'
+        w = 'STOP' # calculate last two tags before stop
         for utag in taglist:
             u = utag
             for vtag in taglist:
@@ -226,7 +227,6 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         sentence_tags.append(finalu)
         sentence_tags.append(finalv)
         sentence_tags.append('STOP')
-        # n = len(sentence) - 3
         
         for k in range(n, 0, -1):
             v = sentence_tags[0]
@@ -245,9 +245,9 @@ def viterbi(brown, taglist, knownwords, qvalues, evalues):
         # pair = sentence[y-2] + '/' + sentence_tags[y-2] + '\n' # class output includes space after .
         tagged_sentence += '\n' # pair
         
-        counter += 1
-        print '====================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
-        print tagged_sentence
+        #counter += 1
+        #print '===================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
+        #print tagged_sentence
 
         tagged.append(tagged_sentence)
 
@@ -265,7 +265,7 @@ def q5_output(tagged):
 #tagged is a list of tagged sentences the WORD/TAG format. Each sentence is a string with a terminal newline rather than a list of tokens.
 def nltk_tagger(brown):
     tagged = []
-    counter = 0
+    #counter = 0
 
     #import the corpus from NLTK and build the training set from sentences in 'news'
     training=nltk.corpus.brown.tagged_sents(tagset='universal')
@@ -287,9 +287,9 @@ def nltk_tagger(brown):
             pair = tag_tuple[0] + '/' + tag_tuple[1] + ' '
             # print pair
             tagged_sentence.append(pair)
-        counter += 1
-        print '====================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
-        print tagged_sentence
+        #counter += 1
+        #print '===================ANOTHER COMPLETE! out of 10,000, so far done: ', counter, '=========='
+        #print tagged_sentence
    
         tagged.append(tagged_sentence)
 
