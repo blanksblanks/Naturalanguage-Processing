@@ -14,7 +14,7 @@ class Transition(object):
 
     @staticmethod
     def left_arc(conf, relation):
-        """
+        """`
         add arc (b, l, s) to A and pops stack
         precondition: s is not root and does not already have a head
             :param configuration: is the current configuration
@@ -29,19 +29,19 @@ class Transition(object):
         # add the arc (b, L, s) to set of arcs A and pop stack
         # that is, draw arc bt next node on the buffer and on stack with label L
         idx_wi = conf.stack[-1] # s
-        idx_wj = conf.buffer.pop(0) # b
-        
+        idx_wj = conf.buffer[0]
+
         if idx_wi is 0:
             return -1
         for arc in conf.arcs:
-            if arc[2] is idx_wi:
+            if arc[2] == idx_wi:
                 return -1
 
         print 'left arc'
         print (idx_wj, relation, idx_wi)
 
-        conf.stack = conf.stack[:-1] # pop stack / remove last element
         conf.arcs.append((idx_wj, relation, idx_wi)) # add the arc (b, L, s) to A
+        conf.stack = conf.stack[:-1]
 
     @staticmethod
     def right_arc(conf, relation):
@@ -75,13 +75,15 @@ class Transition(object):
         """
         # raise NotImplementedError('Please implement reduce!')
         
+        if not conf.buffer or not conf.stack:
+            return -1
+        
         idx_wi = conf.stack[-1]
 
         for arc in conf.arcs:
-            if arc[2] is idx_wi:
+            if arc[2] == idx_wi:
                 conf.stack = conf.stack[:-1]
                 return 0
-
         return -1
 
     @staticmethod
@@ -95,6 +97,8 @@ class Transition(object):
         if not conf.stack or not conf.buffer:
             return -1
 
+        # print conf.stack, conf.buffer
         idx_wj = conf.buffer.pop(0)
+        
         conf.stack.append(idx_wj)
 
