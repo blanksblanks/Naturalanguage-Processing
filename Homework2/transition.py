@@ -15,6 +15,8 @@ class Transition(object):
     @staticmethod
     def left_arc(conf, relation):
         """
+        add arc (b, l, s) to A and pops stack
+        precondition: s is not root and does not already have a head
             :param configuration: is the current configuration
             :return : A new configuration or -1 if the pre-condition is not satisfied
         """
@@ -29,8 +31,11 @@ class Transition(object):
         idx_wi = conf.stack[-1] # s
         idx_wj = conf.buffer.pop(0) # b
         
-        if idx_wi is 0 or (idx_wj, relation, idx_wi) in conf.arcs:
+        if idx_wi is 0:
             return -1
+        for arc in conf.arcs:
+            if arc[2] is idx_wi:
+                return -1
 
         print 'left arc'
         print (idx_wj, relation, idx_wi)
@@ -41,6 +46,7 @@ class Transition(object):
     @staticmethod
     def right_arc(conf, relation):
         """
+        add arc (s, l, b) to A, and pushes node b onto stack
             :param configuration: is the current configuration
             :return : A new configuration or -1 if the pre-condition is not satisfied
         """
@@ -55,44 +61,40 @@ class Transition(object):
         idx_wi = conf.stack[-1]
         idx_wj = conf.buffer.pop(0)
 
-        if idx_wi is 0 or (idx_wj, relation, idx_wi) in conf.arcs:
-            return -1
-
         print 'right arc'
         print (idx_wi, relation, idx_wj)
         conf.stack.append(idx_wj) # push b onto stack
-        conf.arcs.append((idx_wi, relation, idx_wj))
+        conf.arcs.append((idx_wi, relation, idx_wj)) # add the arc (s,l,b) to A
 
     @staticmethod
     def reduce(conf):
         """
+        pop the stack; subject to the precondition that s has a head
             :param configuration: is the current configuration
             :return : A new configuration or -1 if the pre-condition is not satisfied
         """
         # raise NotImplementedError('Please implement reduce!')
-        if not conf.buffer or not conf.stack:
-            return -1
+        
+        idx_wi = conf.stack[-1]
 
-        print 'reduce'
-        # remove b from buffer and add to stack
-        idx_wj = conf.buffer.pop(0)
-        conf.stack.append(idx_wj)
+        for arc in conf.arcs:
+            if arc[2] is idx_wi:
+                conf.stack = conf.stack[:-1]
+                return 0
 
+        return -1
 
     @staticmethod
     def shift(conf):
         """
+        remove b from buffer and push onto stack
             :param configuration: is the current configuration
             :return : A new configuration or -1 if the pre-condition is not satisfied
         """
         # raise NotImplementedError('Please implement shift!')
-        if not conf.stack:
+        if not conf.stack or not conf.buffer:
             return -1
 
-        # check preconditions, s cannot be root
-        if conf.stack[-1] is 0:
-            return -1
-        print 'shift'
-        # pop sigma
-        conf.stack = conf.stack[:-1]
+        idx_wj = conf.buffer.pop(0)
+        conf.stack.append(idx_wj)
 
