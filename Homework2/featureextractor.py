@@ -70,6 +70,7 @@ class FeatureExtractor(object):
         if stack:
             stack_idx0 = stack[-1]
             token = tokens[stack_idx0]
+            # print(token)
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('STK_0_FORM_' + token['word'])
 
