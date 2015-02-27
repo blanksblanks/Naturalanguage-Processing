@@ -70,13 +70,15 @@ class FeatureExtractor(object):
         if stack:
             stack_idx0 = stack[-1]
             token = tokens[stack_idx0]
-            print(token)
+            # print(token)
 
-            # stack[0]: FORM LEMMA POSTAG FEATS
+            # stack[0]: FORM LEMMA CPOSTAG POSTAG REL FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('STK_0_FORM_' + token['word'])
             if FeatureExtractor._check_informative(token['lemma'], True):
                 result.append('STK_0_LEMMA_' + token['lemma'])
+            if FeatureExtractor._check_informative(token['ctag'], True):
+                result.append('STK_0_CTAG_' + token['ctag'])
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('STK_0_TAG_' + token['tag'])
             if FeatureExtractor._check_informative(token['rel'], True):
@@ -95,30 +97,34 @@ class FeatureExtractor(object):
                 result.append('STK_0_RDEP_' + dep_right_most)
             
             # stack[head]: WORD doesn't work
-            '''if FeatureExtractor._check_informative(token['head'], True):
-                if 'head' in token:
+            if 'head' in token:
+                if FeatureExtractor._check_informative(token['head'], True):
                     head = token['head']
                     headtoken = tokens[head]
                     if FeatureExtractor._check_informative(headtoken['word']):
                         result.append('STK_0_HEAD_WORD_' + headtoken['word'])
-            '''
+            
             if len(stack) > 1:
               stack_idx1 = stack[-2]
               token = tokens[stack_idx1] # overwrite token with second el in stack
             
-              # stack[1]: TAG
+              # stack[1]: TAG CTAG
               if FeatureExtractor._check_informative(token['tag'], True):
                   result.append('STK_1_TAG_' + token['tag'])
+              if FeatureExtractor._check_informative(token['ctag'], True):
+                  result.append('STK_1_CTAG_' + token['ctag'])
 
         if buffer:
             buffer_idx0 = buffer[0]
             token = tokens[buffer_idx0]
             
-            # buffer[0]: FORM LEMMA POSTAG FEATS
+            # buffer[0]: FORM LEMMA CPOSTAG POSTAG REL FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('BUF_0_FORM_' + token['word'])
             if FeatureExtractor._check_informative(token['lemma'], True):
                 result.append('BUF_0_LEMMA_' + token['lemma'])
+            if FeatureExtractor._check_informative(token['ctag'], True):
+                result.append('BUF_0_CTAG_' + token['ctag'])
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('BUF_0_TAG_' + token['tag'])
             if FeatureExtractor._check_informative(token['rel'], True):
@@ -145,29 +151,44 @@ class FeatureExtractor(object):
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('BUF_0_RDEP_' + dep_right_most)
             
-            # buffer[1]: FORM TAG
+            # buffer[1]: FORM LEMMA CPOSTAG TAG
             if len(buffer) > 1:
                 buffer_idx1 = buffer[1]
                 token = tokens[buffer_idx1]
 
                 if FeatureExtractor._check_informative(token['word'], True):
                     result.append('BUF_1_WORD_' + token['word'])
+                if FeatureExtractor._check_informative(token['lemma'], True):
+                    result.append('BUF_1_LEMMA_' + token['lemma'])
+                if FeatureExtractor._check_informative(token['ctag'], True):
+                    result.append('BUF_1_CTAG_' + token['ctag'])
                 if FeatureExtractor._check_informative(token['tag'], True):
                     result.append('BUF_1_TAG_' + token['tag'])
+                '''if FeatureExtractor._check_informative(token['rel'], True):
+                    result.append('BUF_1_REL_' + token['tag'])
+
+                if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
+                    feats = token['feats'].split("|")
+                    for feat in feats:
+                        result.append('BUF_1_FEATS_' + feat)''' # makes no difference
             
-            # buffer[2]: TAG
+            # buffer[2]: CTAG TAG
             if len(buffer) > 2:
                 buffer_idx2 = buffer[2]
                 token = tokens[buffer_idx2]
 
+                if FeatureExtractor._check_informative(token['ctag'], True):
+                    result.append('BUF_2_CTAG_' + token['ctag'])
                 if FeatureExtractor._check_informative(token['tag'], True):
                     result.append('BUF_2_TAG_' + token['tag'])
             
-            # buffer[3]: TAG
+            # buffer[3]: CTAG TAG
             if len(buffer) > 3:
                 buffer_idx3 = buffer[3]
                 token = tokens[buffer_idx3]
-
+                
+                if FeatureExtractor._check_informative(token['ctag'], True):
+                    result.append('BUF_3_CTAG_' + token['ctag'])
                 if FeatureExtractor._check_informative(token['tag'], True):
                     result.append('BUF_3_TAG_' + token['tag'])
         
