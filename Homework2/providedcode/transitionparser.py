@@ -121,6 +121,7 @@ class TransitionParser(object):
                             return False
                         if (m, k) in arc_list:
                             return False
+        # print arc_list
         return True
 
     def _write_to_file(self, key, binary_features, input_file):
@@ -142,6 +143,7 @@ class TransitionParser(object):
 
         projective_dependency_graphs = [dg for dg in depgraphs if TransitionParser._is_projective(dg)]
         countProj = len(projective_dependency_graphs)
+        # print projective_dependency_graphs
 
         for depgraph in projective_dependency_graphs:
             conf = Configuration(depgraph, self._user_feature_extractor.extract_features)

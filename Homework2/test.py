@@ -7,8 +7,14 @@ from transition import Transition
 
 if __name__ == '__main__':
     data = dataset.get_swedish_train_corpus().parsed_sents()
+    # data = dataset.get_english_dev_corpus().parsed_sents()
+    # data = dataset.get_danish_train_corpus().parsed_sents()
+    # data = dataset.get_korean_train_corpus().parsed_sents()
     random.seed(1234)
-    subdata = random.sample(data, 200)
+    if len(data) > 200:
+        subdata = random.sample(data, 200)
+    else:
+        subdata = data
 
     try:
         tp = TransitionParser(Transition, FeatureExtractor)
