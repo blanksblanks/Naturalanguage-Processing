@@ -79,6 +79,7 @@ class FeatureExtractor(object):
                 result.append('STK_0_LEMMA_' + token['lemma'])
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('STK_0_TAG_' + token['tag'])
+            
             if 'feats' in token and FeatureExtractor._check_informative(token['feats'], True):
                 feats = token['feats'].split("|")
                 for feat in feats:
@@ -95,8 +96,14 @@ class FeatureExtractor(object):
         if buffer:
             buffer_idx0 = buffer[0]
             token = tokens[buffer_idx0]
+            
+            # feature 2: BUF[0] FORM LEMMA POSTAG FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('BUF_0_FORM_' + token['word'])
+            if FeatureExtractor._check_informative(token['lemma'], True):
+                result.append('BUF_0_LEMMA_' + token['lemma'])
+            if FeatureExtractor._check_informative(token['tag'], True):
+                result.append('BUF_0_TAG_' + token['tag'])
 
             if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
                 feats = token['feats'].split("|")
