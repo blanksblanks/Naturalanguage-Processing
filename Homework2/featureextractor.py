@@ -82,7 +82,7 @@ class FeatureExtractor(object):
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('STK_0_TAG_' + token['tag'])
             if FeatureExtractor._check_informative(token['rel'], True):
-                result.append('STK_0_REL_' + token['tag'])
+                result.append('STK_0_REL_' + token['rel'])
             if 'feats' in token and FeatureExtractor._check_informative(token['feats'], True):
                 feats = token['feats'].split("|")
                 for feat in feats:
@@ -128,7 +128,7 @@ class FeatureExtractor(object):
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('BUF_0_TAG_' + token['tag'])
             if FeatureExtractor._check_informative(token['rel'], True):
-                result.append('BUF_0_REL_' + token['tag'])
+                result.append('BUF_0_REL_' + token['rel'])
 
             if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
                 feats = token['feats'].split("|")
@@ -163,14 +163,14 @@ class FeatureExtractor(object):
                 if FeatureExtractor._check_informative(token['tag'], True):
                     result.append('BUF_1_TAG_' + token['tag'])
                 '''if FeatureExtractor._check_informative(token['ctag'], True):
-                    result.append('BUF_1_CTAG_' + token['ctag'])
+                    result.append('BUF_1_CTAG_' + token['ctag'])'''
                 if FeatureExtractor._check_informative(token['rel'], True):
-                    result.append('BUF_1_REL_' + token['tag'])
+                    result.append('BUF_1_REL_' + token['rel'])
 
                 if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
                     feats = token['feats'].split("|")
                     for feat in feats:
-                        result.append('BUF_1_FEATS_' + feat)''' # makes no difference
+                        result.append('BUF_1_FEATS_' + feat) # makes no difference
             
             # buffer[2]: CTAG TAG
             if len(buffer) > 2:
