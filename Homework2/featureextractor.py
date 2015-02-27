@@ -92,6 +92,14 @@ class FeatureExtractor(object):
                 result.append('STK_0_LDEP_' + dep_left_most)
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('STK_0_RDEP_' + dep_right_most)
+            
+            # stack[head]: WORD
+            # if FeatureExtractor._check_informative(token['head'], True):
+            # if 'head' in token:
+            #    head = token['head']
+            #    headtoken = tokens[head]
+            #    if FeatureExtractor._check_informative(headtoken['word']):
+            #        result.append('STK_0_HEAD_WORD_' + headtoken['word'])
 
             if len(stack) > 1:
               stack_idx1 = stack[-2]
@@ -118,6 +126,13 @@ class FeatureExtractor(object):
                 for feat in feats:
                     result.append('BUF_0_FEATS_' + feat)
 
+            # buffer[head]: WORD
+            if FeatureExtractor._check_informative(token['head'], True):
+                head = token['head']
+                headtoken = tokens[head]
+                if FeatureExtractor._check_informative(headtoken['word']):
+                    result.append('BUF_0_HEAD_WORD_' + headtoken['word'])
+            
             # leftmost, rightmost dependency of buffer[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(buffer_idx0, arcs)
 
