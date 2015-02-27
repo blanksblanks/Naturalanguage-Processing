@@ -70,8 +70,8 @@ class FeatureExtractor(object):
         if stack:
             stack_idx0 = stack[-1]
             token = tokens[stack_idx0]
-            # print(token)
-            
+            print(token)
+
             # stack[0]: FORM LEMMA POSTAG FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('STK_0_FORM_' + token['word'])
@@ -79,7 +79,8 @@ class FeatureExtractor(object):
                 result.append('STK_0_LEMMA_' + token['lemma'])
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('STK_0_TAG_' + token['tag'])
-            
+            if FeatureExtractor._check_informative(token['rel'], True):
+                result.append('STK_0_REL_' + token['tag'])
             if 'feats' in token and FeatureExtractor._check_informative(token['feats'], True):
                 feats = token['feats'].split("|")
                 for feat in feats:
@@ -87,20 +88,20 @@ class FeatureExtractor(object):
 
             # existing feature model: left most, right most dependency of stack[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(stack_idx0, arcs)
-
+            # dep_left_most and dep_right_most contain their relations to this token (their head)
             if FeatureExtractor._check_informative(dep_left_most):
                 result.append('STK_0_LDEP_' + dep_left_most)
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('STK_0_RDEP_' + dep_right_most)
             
-            # stack[head]: WORD
-            # if FeatureExtractor._check_informative(token['head'], True):
-            # if 'head' in token:
-            #    head = token['head']
-            #    headtoken = tokens[head]
-            #    if FeatureExtractor._check_informative(headtoken['word']):
-            #        result.append('STK_0_HEAD_WORD_' + headtoken['word'])
-
+            # stack[head]: WORD doesn't work
+            '''if FeatureExtractor._check_informative(token['head'], True):
+                if 'head' in token:
+                    head = token['head']
+                    headtoken = tokens[head]
+                    if FeatureExtractor._check_informative(headtoken['word']):
+                        result.append('STK_0_HEAD_WORD_' + headtoken['word'])
+            '''
             if len(stack) > 1:
               stack_idx1 = stack[-2]
               token = tokens[stack_idx1] # overwrite token with second el in stack
@@ -120,6 +121,8 @@ class FeatureExtractor(object):
                 result.append('BUF_0_LEMMA_' + token['lemma'])
             if FeatureExtractor._check_informative(token['tag'], True):
                 result.append('BUF_0_TAG_' + token['tag'])
+            if FeatureExtractor._check_informative(token['rel'], True):
+                result.append('BUF_0_REL_' + token['tag'])
 
             if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
                 feats = token['feats'].split("|")
@@ -128,10 +131,11 @@ class FeatureExtractor(object):
 
             # buffer[head]: WORD
             if FeatureExtractor._check_informative(token['head'], True):
-                head = token['head']
-                headtoken = tokens[head]
-                if FeatureExtractor._check_informative(headtoken['word']):
-                    result.append('BUF_0_HEAD_WORD_' + headtoken['word'])
+                if 'head' in token:
+                    head = token['head']
+                    headtoken = tokens[head]
+                    if FeatureExtractor._check_informative(headtoken['word']):
+                        result.append('BUF_0_HEAD_WORD_' + headtoken['word'])
             
             # leftmost, rightmost dependency of buffer[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(buffer_idx0, arcs)
