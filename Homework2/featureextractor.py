@@ -61,10 +61,10 @@ class FeatureExtractor(object):
         result = []
 
 
-        global printed
-        if not printed:
-            print("This is not a very good feature extractor!")
-            printed = True
+        # global printed
+        # if not printed:
+           # print("This is not a very good feature extractor!")
+           # printed = True
 
         # an example set of features:
         if stack:
@@ -72,7 +72,7 @@ class FeatureExtractor(object):
             token = tokens[stack_idx0]
             # print(token)
             
-            # feature 1: STK[0] FORM LEMMA POSTAG FEATS
+            # stack[0]: FORM LEMMA POSTAG FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('STK_0_FORM_' + token['word'])
             if FeatureExtractor._check_informative(token['lemma'], True):
@@ -85,7 +85,7 @@ class FeatureExtractor(object):
                 for feat in feats:
                     result.append('STK_0_FEATS_' + feat)
 
-            # Left most, right most dependency of stack[0]
+            # existing feature model: left most, right most dependency of stack[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(stack_idx0, arcs)
 
             if FeatureExtractor._check_informative(dep_left_most):
@@ -93,11 +93,19 @@ class FeatureExtractor(object):
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('STK_0_RDEP_' + dep_right_most)
 
+            if len(stack) > 1:
+              stack_idx1 = stack[-2]
+              token = tokens[stack_idx1] # overwrite token with second el in stack
+            
+              # stack[1]: TAG
+              if FeatureExtractor._check_informative(token['tag'], True):
+                  result.append('STK_1_TAG_' + token['tag'])
+
         if buffer:
             buffer_idx0 = buffer[0]
             token = tokens[buffer_idx0]
             
-            # feature 2: BUF[0] FORM LEMMA POSTAG FEATS
+            # buffer[0]: FORM LEMMA POSTAG FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('BUF_0_FORM_' + token['word'])
             if FeatureExtractor._check_informative(token['lemma'], True):
@@ -110,11 +118,38 @@ class FeatureExtractor(object):
                 for feat in feats:
                     result.append('BUF_0_FEATS_' + feat)
 
+            # leftmost, rightmost dependency of buffer[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(buffer_idx0, arcs)
 
             if FeatureExtractor._check_informative(dep_left_most):
                 result.append('BUF_0_LDEP_' + dep_left_most)
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('BUF_0_RDEP_' + dep_right_most)
+            
+            # buffer[1]: FORM TAG
+            if len(buffer) > 1:
+                buffer_idx1 = buffer[1]
+                token = tokens[buffer_idx1]
 
+                if FeatureExtractor._check_informative(token['word'], True):
+                    result.append('BUF_1_WORD_' + token['word'])
+                if FeatureExtractor._check_informative(token['tag'], True):
+                    result.append('BUF_1_TAG_' + token['tag'])
+            
+            # buffer[2]: TAG
+            if len(buffer) > 2:
+                buffer_idx2 = buffer[2]
+                token = tokens[buffer_idx2]
+
+                if FeatureExtractor._check_informative(token['tag'], True):
+                    result.append('BUF_2_TAG_' + token['tag'])
+            
+            # buffer[3]: TAG
+            if len(buffer) > 3:
+                buffer_idx3 = buffer[3]
+                token = tokens[buffer_idx3]
+
+                if FeatureExtractor._check_informative(token['tag'], True):
+                    result.append('BUF_3_TAG_' + token['tag'])
+        
         return result
