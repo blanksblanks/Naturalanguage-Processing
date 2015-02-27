@@ -71,10 +71,15 @@ class FeatureExtractor(object):
             stack_idx0 = stack[-1]
             token = tokens[stack_idx0]
             # print(token)
+            
+            # feature 1: STK[0] FORM LEMMA POSTAG FEATS
             if FeatureExtractor._check_informative(token['word'], True):
                 result.append('STK_0_FORM_' + token['word'])
-
-            if 'feats' in token and FeatureExtractor._check_informative(token['feats']):
+            if FeatureExtractor._check_informative(token['lemma'], True):
+                result.append('STK_0_LEMMA_' + token['lemma'])
+            if FeatureExtractor._check_informative(token['tag'], True):
+                result.append('STK_0_TAG_' + token['tag'])
+            if 'feats' in token and FeatureExtractor._check_informative(token['feats'], True):
                 feats = token['feats'].split("|")
                 for feat in feats:
                     result.append('STK_0_FEATS_' + feat)
