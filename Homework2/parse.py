@@ -1,9 +1,9 @@
-import random
-from providedcode import dataset
+'''import random
+from providedcode import dataset'''
 from providedcode.transitionparser import TransitionParser
-from providedcode.evaluate import DependencyEvaluator
+'''from providedcode.evaluate import DependencyEvaluator
 from featureextractor import FeatureExtractor
-from transition import Transition
+from transition import Transition'''
 
 from providedcode.dependencygraph import DependencyGraph
 import sys
