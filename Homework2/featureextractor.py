@@ -136,12 +136,12 @@ class FeatureExtractor(object):
                     result.append('BUF_0_FEATS_' + feat)
 
             # buffer[head]: WORD
-            if FeatureExtractor._check_informative(token['head'], True):
-                if 'head' in token:
-                    head = token['head']
-                    headtoken = tokens[head]
-                    if FeatureExtractor._check_informative(headtoken['word']):
-                        result.append('BUF_0_HEAD_WORD_' + headtoken['word'])
+            # if FeatureExtractor._check_informative(token['head'], True):
+            #    if 'head' in token:
+            #        head = token['head']
+            #        headtoken = tokens[head]
+            #        if FeatureExtractor._check_informative(headtoken['word']):
+            #            result.append('BUF_0_HEAD_WORD_' + headtoken['word'])
             
             # leftmost, rightmost dependency of buffer[0]
             dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(buffer_idx0, arcs)
