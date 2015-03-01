@@ -10,9 +10,10 @@ import sys
 
 if __name__ == '__main__':
 
-    sentence = DependencyGraph.from_sentence('Hi, this is a test')
-
     tp = TransitionParser.load(sys.argv[1])
-    parsed = tp.parse([sentence])
-    print parsed[0].to_conll(10).encode('utf-8')
+
+    for line in sys.stdin:
+        sentence = DependencyGraph.from_sentence(line)
+        parsed = tp.parse([sentence])
+        print parsed[0].to_conll(10).encode('utf-8')
 
