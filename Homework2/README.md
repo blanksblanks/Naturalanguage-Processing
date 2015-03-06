@@ -252,6 +252,10 @@ a. Instructions for running parse.py:
 ```
 cat englishfile | python parse.py english.model > englishfile.conll 
 ```
+
+Note: while head values do not seem completely accurate, note that they
+donot all point at root and do find some dependencies between the tokens.
+
 ---------------------------------------------------------------------
 INCLUDED DELIVERABLES (can all be found in the main directory of hw2)
 
