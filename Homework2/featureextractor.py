@@ -177,6 +177,14 @@ class FeatureExtractor(object):
                     for feat in feats:
                         result.append('BUF_1_FEATS_' + feat) # makes no difference
             
+                # leftmost, rightmost dependency of buffer[1]
+                '''dep_left_most, dep_right_most = FeatureExtractor.find_left_right_dependencies(buffer_idx1, arcs)
+
+                if FeatureExtractor._check_informative(dep_left_most):
+                    result.append('BUF_1_RDEP_' + dep_left_most)
+                if FeatureExtractor._check_informative(dep_right_most):
+                    result.append('BUF_1_RDEP_' + dep_right_most)
+                '''
             # buffer1->[head]: WORD TAG
             '''if 'head' in token:
                 if FeatureExtractor._check_informative(token['head'], True):
