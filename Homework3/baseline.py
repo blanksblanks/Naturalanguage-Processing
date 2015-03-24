@@ -2,6 +2,7 @@ from xml.dom import minidom
 import json
 import codecs
 import sys
+import unicodedata
 
 def parse_data(input_file):
 	'''
@@ -64,18 +65,22 @@ def getFrequentSense(lexelt, sense_dict):
 		pass
 	return sense
 
+def replace_accented(input_str):
+    nkfd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+
 def most_frequent_sense(language, sense_dict):
 	data = parse_data('data/' + language + '-dev.xml')
 	outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
-	for lexelt, instances in sorted(data.iteritems(), key = lambda d: d[0].split('.')[0]):
-		for instance_id, context in instances:
+        for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
+            for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
 			sid = getFrequentSense(lexelt, sense_dict)
-			outfile.write(lexelt + ' ' + instance_id + ' ' + sid + '\n')
+			outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
 	outfile.close()
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
 		print 'Usage: python baseline.py [language]'
 		sys.exit(0)
-	sense_dict = build_dict(sys.argv[1])
+        sense_dict = build_dict(sys.argv[1])
 	most_frequent_sense(sys.argv[1], sense_dict)
