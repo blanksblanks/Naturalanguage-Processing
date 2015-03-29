@@ -229,7 +229,7 @@ def compute_context_vectors(language):
                     # print 'instance', instance
                     # print 'sense', sense
                     # print 'vector', vector
-    print 'target_data', target_data
+    # print 'target_data', target_data
     return context_data, target_data, s_data
 
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
@@ -267,7 +267,7 @@ def parse_dev_data(language, s_data):
     lex_list = xmldoc.getElementsByTagName('lexelt') 
     for node in lex_list:
         lexelt = node.getAttribute('item')
-        # print 'lexelt', lexelt
+        print 'lexelt', lexelt
         s_i_data[lexelt] = []
         context_data[lexelt] = []
         instance_data[lexelt] = []
@@ -323,7 +323,7 @@ def parse_dev_data(language, s_data):
 def train_classifiers(context_data, target_data):
     # initialize K-Nearest Neighbors and Linear SVM classifiers
     knn_data = {}
-    clf_data = {}
+    svc_data = {}
 
     for lexelt in context_data:
         context_list = context_data[lexelt]
@@ -336,24 +336,24 @@ def train_classifiers(context_data, target_data):
         knn_data[lexelt] = knn
         # SVM: learn from existing data by creating an estimator and calling its fit(X, Y) method 
         # SVMs try to construct a hyperplane maximizing the margin between two classes
-        clf = svm.LinearSVC()
-        clf.fit(context_list, target_list)
-        clf_data[lexelt] = clf
+        svc = svm.LinearSVC()
+        svc.fit(context_list, target_list)
+        svc_data[lexelt] = svc
 
-    return knn_data, clf_data
+    return knn_data, svc_data
 
 
-def test_knn_classifier(language, knn_data, context_dev, instance_dev):
+def test_classifier(language, classifier, clf_data, context_dev, instance_dev):
     # data = parse_data('data/' + language + '-dev.xml')
-    outfile = codecs.open(language + '.knn', encoding = 'utf-8', mode = 'w')
+    outfile = codecs.open(language + '.' + classifier, encoding = 'utf-8', mode = 'w')
     for lexelt in context_dev:
         context_list = context_dev[lexelt]
         instance_list = instance_dev[lexelt]
-        knn = knn_data[lexelt]
+        clf = clf_data[lexelt]
         for idx in xrange(len(context_list)):
             instance_id = instance_list[idx]
             vector = context_list[idx]
-            sid = knn.predict(vector)
+            sid = clf.predict(vector)
             outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
     outfile.close()
 
@@ -365,6 +365,8 @@ if __name__ == '__main__':
     # most_frequent_sense(sys.argv[1], sense_dict)
     lang = sys.argv[1]
     context_data, target_data, s_data = compute_context_vectors(lang)
-    knn_data, clf_data = train_classifiers(context_data, target_data)
+    knn_data, svc_data = train_classifiers(context_data, target_data)
     context_dev, instance_dev = parse_dev_data(lang, s_data)
-    test_knn_classifier(lang, knn_data, context_dev, instance_dev)
+    test_classifier(lang, 'knn', knn_data, context_dev, instance_dev)
+    test_classifier(lang, 'svc', svc_data, context_dev, instance_dev)
+    
