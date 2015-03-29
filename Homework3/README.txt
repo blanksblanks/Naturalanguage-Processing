@@ -25,3 +25,45 @@ Baseline values:
     attempted: 100.00 % (1133.00 attempted of 1133.00 in total)
 
 
+KNN
+
+Fine-grained score for "English.knn" using key "data/English-dev.key":
+ precision: 0.566 (1124.00 correct of 1985.00 attempted)
+ recall: 0.566 (1124.00 correct of 1985.00 in total)
+ attempted: 100.00 % (1985.00 attempted of 1985.00 in total)
+
+SVC
+
+Fine-grained score for "English.svc" using key "data/English-dev.key":
+ precision: 0.620 (1230.00 correct of 1985.00 attempted)
+ recall: 0.620 (1230.00 correct of 1985.00 in total)
+ attempted: 100.00 % (1985.00 attempted of 1985.00 in total)
+
+KNN
+
+Fine-grained score for "Spanish.knn" using key "data/Spanish-dev.key":
+ precision: 0.700 (1474.00 correct of 2107.00 attempted)
+ recall: 0.700 (1474.00 correct of 2107.00 in total)
+ attempted: 100.00 % (2107.00 attempted of 2107.00 in total)
+
+SVC
+
+Fine-grained score for "Spanish.svc" using key "data/Spanish-dev.key":
+ precision: 0.783 (1650.00 correct of 2107.00 attempted)
+ recall: 0.783 (1650.00 correct of 2107.00 in total)
+ attempted: 100.00 % (2107.00 attempted of 2107.00 in total)
+
+KNN
+
+Fine-grained score for "Catalan.knn" using key "data/Catalan-dev.key":
+ precision: 0.703 (797.00 correct of 1133.00 attempted)
+ recall: 0.703 (797.00 correct of 1133.00 in total)
+ attempted: 100.00 % (1133.00 attempted of 1133.00 in total)
+
+SVC
+
+Fine-grained score for "Catalan.svc" using key "data/Catalan-dev.key":
+ precision: 0.824 (934.00 correct of 1133.00 attempted)
+ recall: 0.824 (934.00 correct of 1133.00 in total)
+ attempted: 100.00 % (1133.00 attempted of 1133.00 in total)
+
