@@ -106,7 +106,7 @@ def compute_context_vectors(language):
 	s_i_data = {}
         s_data = {}
         ans_data = {}
-        context_data = []
+        context_data = {}
         k = 10
 	lex_list = xmldoc.getElementsByTagName('lexelt')
 	for node in lex_list:
