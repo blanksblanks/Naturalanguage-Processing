@@ -8,7 +8,7 @@ import nltk
 
 # 2
 def parse_data(input_file):
-	'''
+        '''
 	Parse the .xml dev data file
 
 	param str input_file: The input data file path
@@ -100,35 +100,61 @@ def most_frequent_sense(language, sense_dict):
 def compute_context_vectors(language):
         input_file = 'data/' + language + '-train.xml'
 	xmldoc = minidom.parse(input_file)
-	data = {}
+	s_i_data = {}
+        s_data = {}
+        context_vex = {}
         k = 10
 	lex_list = xmldoc.getElementsByTagName('lexelt')
 	for node in lex_list:
 		lexelt = node.getAttribute('item')
 		print 'lexelt', lexelt
-                data[lexelt] = []
-		inst_list = node.getElementsByTagName('instance')
+                s_i_data[lexelt] = []
                 s = []
+                inst_list = node.getElementsByTagName('instance')
 		for inst in inst_list:
 			instance_id = inst.getAttribute('id')
 			l = inst.getElementsByTagName('context')[0]
 			context = (l.childNodes[0].nodeValue + l.childNodes[1].firstChild.nodeValue + l.childNodes[2].nodeValue).replace('\n', '')
                         pretokens = nltk.word_tokenize(l.childNodes[0].nodeValue)
                         posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
-                        s_i = pretokens[-k:]
-                        s_i.extend(posttokens[:k])
-                        s.extend(s_i)
+                        tokens = pretokens[-k:]
+                        tokens.extend(posttokens[:k])
+                        s.extend(tokens)
+                        # convert list to dictionary
+                        s_i = {}
+                        for token in tokens:
+                            if token in s_i:
+                                s_i[token] += 1
+                            else:
+                                s_i[token] = 1
+                        # s_i = {item : index for index, item in enumerate(s_i)}
                         print 's_i', s_i
                         # print '0', l.childNodes[0].nodeValue
 			# print '1', l.childNodes[1].firstChild.nodeValue
 			# print '2', l.childNodes[2].nodeValue
                         # print 'instance_id', instance_id, 'context', context
                         # data[lexelt].append((instance_id, context))
-                        data[lexelt].append((instance_id, s_i))
-                        print 'data[lexelt]',  data[lexelt]
-                print lexelt, 'SET!!!', s
+                        s_i_data[lexelt].append((instance_id, s_i))
+                        # print 'data[lexelt]',  data[lexelt]
+                s = list(set(s))
+                s_data[lexelt] = s
+                print lexelt, 'SET!!!', s_data[lexelt]
+                
+                # calculate context vectors for each instance
+		context_vex[lexelt] = []
+                for inst in s_i_data[lexelt]:
+                        instance_id = inst[0]
+                        s_i = inst[1]
+                        vector = []
+                        for idx in xrange(len(s)):
+                              word = s[idx]
+                              if word in s_i:
+                                   vector.append(s_i[word])
+                              else:
+                                  vector.append(0)
+                        context_vex[lexelt].append((instance_id, vector))
+                        print 'context vector for', instance_id, vector
 	# print 'data', data
-        return data
 
 
 if __name__ == '__main__':
