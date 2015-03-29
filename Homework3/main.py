@@ -153,7 +153,10 @@ def compute_context_vectors(language):
 			# print 'sense_id', sense_id
                         
                         # parse context to find words within k distance of head
-                        l = inst.getElementsByTagName('context')[0]
+                        if language is 'English':
+                            l = inst.getElementsByTagName('context')[0]
+                        else:
+                            l = inst.getElementsByTagName('target')[0]
                         pretokens = nltk.word_tokenize(l.childNodes[0].nodeValue)
                         head = l.childNodes[1].firstChild.nodeValue
                         posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
@@ -192,8 +195,13 @@ def compute_context_vectors(language):
                 
                 # calculate context vectors for each instance in ordered s_i_data[lexelt] list
                 for inst in s_i_data[lexelt]:
+                        # print 's_i_data', s_i_data[lexelt]
                         instance = inst[0]
-                        sense = str(inst[1]) # cast to string to avoid unicode error for NumPY<1.7.0
+                        try:
+                            sense = str(inst[1]) # cast to string to avoid unicode error for NumPY<1.7.0
+                        except UnicodeEncodeError:
+                            sense = str(replace_accented(inst[1]))
+                            print 'replaced accented', inst[1], sense
                         s_i = inst[2]
                         vector = []
                         for idx in xrange(len(s)):
@@ -208,20 +216,10 @@ def compute_context_vectors(language):
                         # print 'instance', instance
                         # print 'sense', sense
                         # print 'vector', vector
-	return context_data, target_data
+	print 'target_data', target_data
+        return context_data, target_data
 
         # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
-
-
-# 2
-def most_frequent_sense(language, sense_dict):
-	data = parse_data('data/' + language + '-dev.xml')
-	outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
-        for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
-            for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
-			sid = getFrequentSense(lexelt, sense_dict)
-			outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
-	outfile.close()
 
 def train_classifiers(context_data, target_data):
         # initialize K-Nearest Neighbors and Linear SVM classifiers
@@ -245,6 +243,15 @@ def train_classifiers(context_data, target_data):
             clf_data[lexelt] = clf
             
         return knn_data, clf_data
+
+def test_classifiers(language, knn_data, clf_data):
+	data = parse_data('data/' + language + '-dev.xml')
+	outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
+        for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
+            for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
+			sid = (lexelt, sense_dict)
+			outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
+	outfile.close()
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
