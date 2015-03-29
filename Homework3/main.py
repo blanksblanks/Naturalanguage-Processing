@@ -101,38 +101,70 @@ def most_frequent_sense(language, sense_dict):
 	outfile.close()
 
 def compute_context_vectors(language):
+        # define our training data and parse with minidom
         input_file = 'data/' + language + '-train.xml'
 	xmldoc = minidom.parse(input_file)
-	s_i_data = {}
-        s_data = {}
-        ans_data = {}
-        context_data = {}
+
+        # set context window to 10 words preceding and following the head
         k = 10
+
+        # s_i_data is a dictionary; key=lexelt, value=ordered list of tuples
+        # tuple for each test instance t_i where [0] = instanceid, [1] = senseid,
+        # [2] = list of words that appear in the context window
+        s_i_data = {} 
+        
+        # s_data is a dictionary; key=lexelt, value=set(context windows for each t_i)
+        s_data = {}
+        
+        # these are our return values: ordered lists of context vectors, instanceids, senseid's
+        context_list = []
+        instance_list = []
+        target_list = []
+
+        # create a list of all lexelts that appear in the xmldoc
 	lex_list = xmldoc.getElementsByTagName('lexelt')
+        
+        # iterate throug lex_list in order
 	for node in lex_list:
-		lexelt = node.getAttribute('item')
-		print 'lexelt', lexelt
+		
+                # identify lexelt and add as key for list of tuples (instance, sense, s_i)
+                lexelt = node.getAttribute('item')
+		# print 'lexelt', lexelt
                 s_i_data[lexelt] = []
-                ans_data[lexelt] = []
+
+                # initialize s for this particular lexelt where s is the set(union of all s_i)
                 s = []
+
+                # iterate through instances for a lexelt
                 inst_list = node.getElementsByTagName('instance')
 		for inst in inst_list:
-			instance_id = inst.getAttribute('id')
+			
+                        # identify the instance_id
+                        instance_id = inst.getAttribute('id')
+                        # print 'instance_id', instance_id
+                        sense_id = inst.getElementsByTagName('answer')[0].getAttribute('senseid')
+			# print 'sense_id', sense_id
+                        
+                        # parse context to find words within k distance of head
                         l = inst.getElementsByTagName('context')[0]
-			# context = (l.childNodes[0].nodeValue + l.childNodes[1].firstChild.nodeValue + l.childNodes[2].nodeValue).replace('\n', '')
                         pretokens = nltk.word_tokenize(l.childNodes[0].nodeValue)
+                        head = l.childNodes[1].firstChild.nodeValue
                         posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
                         tokens = pretokens[-k:]
                         tokens.extend(posttokens[:k])
-                        print instance_id, 'tokens', tokens
+                        # print 'tokens', tokens
                         s.extend(tokens)
-                        # convert list to dictionary
+                        
+                        # create s_i as a dictionary to keep track of words within k distance of
+                        # current head and counts for the number of time it appears in the window
                         s_i = {}
                         for token in tokens:
                             if token in s_i:
                                 s_i[token] += 1
                             else:
                                 s_i[token] = 1
+                        
+                        # print statements
                         # s_i = {item : index for index, item in enumerate(s_i)}
                         # print 's_i', s_i
                         # print '0', l.childNodes[0].nodeValue
@@ -140,32 +172,38 @@ def compute_context_vectors(language):
 			# print '2', l.childNodes[2].nodeValue
                         # print 'instance_id', instance_id, 'context', context
                         # data[lexelt].append((instance_id, context))
-                        s_i_data[lexelt].append((instance_id, s_i))
                         # print 'data[lexelt]',  data[lexelt]
-			# create list of answers
-                        sense_id = inst.getElementsByTagName('answer')[0].getAttribute('senseid')
-			ans_data[lexelt].append((instance_id, sense_id))
+			
+                        # append tuple to s_i_data[lexelt]
+                        s_i_data[lexelt].append((instance_id, sense_id, s_i))
+                
+                # after iterating all t_i, ensure s is a unique list of set(union(s_i))
+                # and append to s_data[lexelt]
                 s = list(set(s))
                 s_data[lexelt] = s
-                # print lexelt, 'SET!!!', s_data[lexelt]
+                # print lexelt, '!SET!', s_data[lexelt]
                 
-                # calculate context vectors for each instance
-		context_data[lexelt] = []
+                # calculate context vectors for each instance in ordered s_i_data[lexelt] list
                 for inst in s_i_data[lexelt]:
-                        instance_id = inst[0]
-                        s_i = inst[1]
+                        instance = inst[0]
+                        sense = inst[1]
+                        s_i = inst[2]
                         vector = []
                         for idx in xrange(len(s)):
                               word = s[idx]
                               if word in s_i:
-                                   vector.append(s_i[word])
+                                   vector.append(s_i[word]) # append the count from s_i dict
                               else:
                                   vector.append(0)
-                        context_data[lexelt].append((instance_id, vector))
-                        # print 'context vector for', instance_id, vector
-	return context_data, ans_data
+                        context_list.append(vector)
+                        instance_list.append(instance)
+                        target_list.append(sense)
+                        print 'instance', instance
+                        print 'sense', sense
+                        # print 'vector', vector
+	return context_list, target_list
+
         # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
-        # print 'data', data
 
 
 if __name__ == '__main__':
@@ -174,15 +212,9 @@ if __name__ == '__main__':
 		sys.exit(0)
         # sense_dict = build_dict(sys.argv[1])
 	# most_frequent_sense(sys.argv[1], sense_dict)
-        vect_data, ans_data  = compute_context_vectors(sys.argv[1])
-        print vect_data
-        print ans_data
+        list_of_context_vectors, list_of_answers  = compute_context_vectors(sys.argv[1])
+        print 'lengths of context vector and answers lists:', len(list_of_context_vectors), len(list_of_answers)
+        # print 'context vectors', list_of_context_vectors
+        # print 'answers', list_of_answers
         clf = svm.SVC()
-        list_of_context_vectors = []
-        for lexelt in vect_data:
-                vectors = vect_data[lexelt]
-                list_of_context_vectors.append(vectors[1])
-        for lexelt in ans_data:
-                answers = vect_data[lexelt]
-                list_of_answers.append(answers[1])
         clf.fit(list_of_context_vectors, list_of_answers)
