@@ -101,21 +101,32 @@ def compute_context_vectors(language):
         input_file = 'data/' + language + '-train.xml'
 	xmldoc = minidom.parse(input_file)
 	data = {}
+        k = 10
 	lex_list = xmldoc.getElementsByTagName('lexelt')
 	for node in lex_list:
 		lexelt = node.getAttribute('item')
 		print 'lexelt', lexelt
                 data[lexelt] = []
 		inst_list = node.getElementsByTagName('instance')
+                s = []
 		for inst in inst_list:
 			instance_id = inst.getAttribute('id')
 			l = inst.getElementsByTagName('context')[0]
 			context = (l.childNodes[0].nodeValue + l.childNodes[1].firstChild.nodeValue + l.childNodes[2].nodeValue).replace('\n', '')
-			print '0', l.childNodes[0].nodeValue
-			print '1', l.childNodes[1].firstChild.nodeValue
-			print '2', l.childNodes[2].nodeValue
-                        print 'instance_id', instance_id, 'context', context
-                        data[lexelt].append((instance_id, context))
+                        pretokens = nltk.word_tokenize(l.childNodes[0].nodeValue)
+                        posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
+                        s_i = pretokens[-k:]
+                        s_i.extend(posttokens[:k])
+                        s.extend(s_i)
+                        print 's_i', s_i
+                        # print '0', l.childNodes[0].nodeValue
+			# print '1', l.childNodes[1].firstChild.nodeValue
+			# print '2', l.childNodes[2].nodeValue
+                        # print 'instance_id', instance_id, 'context', context
+                        # data[lexelt].append((instance_id, context))
+                        data[lexelt].append((instance_id, s_i))
+                        print 'data[lexelt]',  data[lexelt]
+                print lexelt, 'SET!!!', s
 	# print 'data', data
         return data
 
