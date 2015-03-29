@@ -117,25 +117,32 @@ def compute_context_vectors(language):
         s_data = {}
         
         # these are our return values: ordered lists of context vectors, instanceids, senseid's
-        context_list = []
-        instance_list = []
-        target_list = []
+        # for each lexelt in their respective data dictionaries
+        context_data = {}
+        instance_data = {}
+        target_data = {}
 
-        # create a list of all lexelts that appear in the xmldoc
-	lex_list = xmldoc.getElementsByTagName('lexelt')
-        
-        # iterate throug lex_list in order
+        # for each lexelt in the xml file
+	lex_list = xmldoc.getElementsByTagName('lexelt') 
 	for node in lex_list:
 		
-                # identify lexelt and add as key for list of tuples (instance, sense, s_i)
+                # identify the lexelt to use as key for data dictionaries
                 lexelt = node.getAttribute('item')
 		# print 'lexelt', lexelt
+                
+                # initialize the following:
+                #  - ordered list of tuples (instance, sense, s_i)
+                #  - unique list (set) of all s_i (union)
+                #  - ordered list of context vectors
+                #  - ordered list of instance id's
+                #  - ordered list of sense id's
                 s_i_data[lexelt] = []
-
-                # initialize s for this particular lexelt where s is the set(union of all s_i)
                 s = []
+                context_data[lexelt] = []
+                instance_data[lexelt] = []
+                target_data[lexelt] = []
 
-                # iterate through instances for a lexelt
+                # for each test instances t_i of the lexelt
                 inst_list = node.getElementsByTagName('instance')
 		for inst in inst_list:
 			
@@ -186,7 +193,7 @@ def compute_context_vectors(language):
                 # calculate context vectors for each instance in ordered s_i_data[lexelt] list
                 for inst in s_i_data[lexelt]:
                         instance = inst[0]
-                        sense = inst[1]
+                        sense = str(inst[1]) # cast to string to avoid unicode error for NumPY<1.7.0
                         s_i = inst[2]
                         vector = []
                         for idx in xrange(len(s)):
@@ -195,16 +202,49 @@ def compute_context_vectors(language):
                                    vector.append(s_i[word]) # append the count from s_i dict
                               else:
                                   vector.append(0)
-                        context_list.append(vector)
-                        instance_list.append(instance)
-                        target_list.append(sense)
-                        print 'instance', instance
-                        print 'sense', sense
+                        context_data[lexelt].append(vector)
+                        instance_data[lexelt].append(instance)
+                        target_data[lexelt].append(sense)
+                        # print 'instance', instance
+                        # print 'sense', sense
                         # print 'vector', vector
-	return context_list, target_list
+	return context_data, target_data
 
         # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
+
+# 2
+def most_frequent_sense(language, sense_dict):
+	data = parse_data('data/' + language + '-dev.xml')
+	outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
+        for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
+            for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
+			sid = getFrequentSense(lexelt, sense_dict)
+			outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
+	outfile.close()
+
+def train_classifiers(context_data, target_data):
+        # initialize K-Nearest Neighbors and Linear SVM classifiers
+        knn_data = {}
+        clf_data = {}
+
+        for lexelt in context_data:
+            context_list = context_data[lexelt]
+            target_list = target_data[lexelt]
+            
+            # KNN: given a new observation, take the label of training samples closests to its
+            # n-dimensional space, where nis the number of features in each sample
+            knn = neighbors.KNeighborsClassifier()
+            knn.fit(context_list, target_list)
+            knn_data[lexelt] = knn
+            
+            # SVM: learn from existing data by creating an estimator and calling its fit(X, Y) method 
+            # SVMs try to construct a hyperplane maximizing the margin between two classes
+            clf = svm.LinearSVC()
+            clf.fit(context_list, target_list)
+            clf_data[lexelt] = clf
+            
+        return knn_data, clf_data
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
@@ -212,9 +252,5 @@ if __name__ == '__main__':
 		sys.exit(0)
         # sense_dict = build_dict(sys.argv[1])
 	# most_frequent_sense(sys.argv[1], sense_dict)
-        list_of_context_vectors, list_of_answers  = compute_context_vectors(sys.argv[1])
-        print 'lengths of context vector and answers lists:', len(list_of_context_vectors), len(list_of_answers)
-        # print 'context vectors', list_of_context_vectors
-        # print 'answers', list_of_answers
-        clf = svm.SVC()
-        clf.fit(list_of_context_vectors, list_of_answers)
+        context_data, target_data = compute_context_vectors(sys.argv[1])
+        knn_data, clf_data = train_classifiers(context_data, target_data)
