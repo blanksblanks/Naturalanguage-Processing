@@ -3,8 +3,10 @@ import json
 import codecs
 import sys
 import unicodedata
-from nltk.corpus import wordnet as wn
 import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import *
+from nltk.corpus import wordnet as wn
 from sklearn import datasets
 from sklearn import svm
 from sklearn import neighbors
@@ -13,8 +15,8 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-# set context window to 10 words preceding and following the head
-k = 10
+k = 10 # set context window to 10 words preceding and following the head
+stemmer = PorterStemmer()
 
 # ============================================================
 # Main Functions
@@ -115,7 +117,32 @@ def most_frequent_sense(language, sense_dict):
             outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
     outfile.close()
 
-def compute_context_vectors(language):
+# remove stop words
+def remove_stops(tokens, lang):
+    lang = lang.lower()
+    try:
+        filtered = [w for w in tokens if not w in stopwords.words(lang)]
+    except IOError:
+        print "NLTK stopwords does not support this language (" + lang + ")"
+        sys.exit(1)
+    return filtered
+
+# stem tokens using Porter Stemmer
+def stem(tokens):
+    stemmed = []
+    for token in tokens:
+        stemmed.append(stemmer.stem(token))
+    return stemmed
+
+'''
+If feature_type == 0, use default tokens for context vectors
+If feature_type == 1, remove stop words
+If feature_type == 2, do stemming
+If feature_type == 3, combine steps 1 and 2
+If feature_type == 4, obtain synonyms, hyponyms and hypernyms
+If feature_type == 5, compute relevance scores
+'''
+def compute_context_vectors(language, feature_type):
     # define our training data and parse with minidom
     input_file = 'data/' + language + '-train.xml'
     xmldoc = minidom.parse(input_file)
@@ -175,7 +202,15 @@ def compute_context_vectors(language):
                     posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
                     tokens = pretokens[-k:]
                     tokens.extend(posttokens[:k])
+                    
+                    if (feature_type == 1 or feature_type == 3):
+                        tokens = remove_stops(tokens, language)
+                        # print 'remove stops'
+                    if (feature_type == 2 or feature_type == 3):
+                        tokens = stem(tokens)
+                        # print 'stem tokens'
                     # print 'tokens', tokens
+
                     s.extend(tokens)
 
                     # create s_i as a dictionary to keep track of words within k distance of
@@ -187,7 +222,6 @@ def compute_context_vectors(language):
                         else:
                             s_i[token] = 1
 
-                    # print statements
                     # s_i = {item : index for index, item in enumerate(s_i)}
                     # print 's_i', s_i
                     # print '0', l.childNodes[0].nodeValue
@@ -257,7 +291,7 @@ def train_classifiers(context_data, target_data):
 
         return knn_data, clf_data
 
-def parse_dev_data(language, s_data):
+def parse_dev_data(language, feature_type, s_data):
     input_file = 'data/' + language + '-dev.xml'
     xmldoc = minidom.parse(input_file)
     context_data = {}
@@ -291,6 +325,8 @@ def parse_dev_data(language, s_data):
             tokens = pretokens[-k:]
             tokens.extend(posttokens[:k])
             # print 'tokens', tokens
+            if (feature_type == 2 or feature_type == 3):
+                tokens = stem(tokens)
 
             # create s_i as a dictionary to keep track of words within k distance of
             # current head and counts for the number of time it appears in the window
@@ -343,9 +379,9 @@ def train_classifiers(context_data, target_data):
     return knn_data, svc_data
 
 
-def test_classifier(language, classifier, clf_data, context_dev, instance_dev):
+def test_classifier(language, feature_type, classifier, clf_data, context_dev, instance_dev):
     # data = parse_data('data/' + language + '-dev.xml')
-    outfile = codecs.open(language + '.' + classifier, encoding = 'utf-8', mode = 'w')
+    outfile = codecs.open(language + '_' + str(feature_type) + '.' + classifier, encoding = 'utf-8', mode = 'w')
     for lexelt in context_dev:
         context_list = context_dev[lexelt]
         instance_list = instance_dev[lexelt]
@@ -358,15 +394,19 @@ def test_classifier(language, classifier, clf_data, context_dev, instance_dev):
     outfile.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print 'Usage: python baseline.py [language]'
         sys.exit(0)
     # sense_dict = build_dict(sys.argv[1])
     # most_frequent_sense(sys.argv[1], sense_dict)
     lang = sys.argv[1]
-    context_data, target_data, s_data = compute_context_vectors(lang)
+    try:
+        ft = int(sys.argv[2])
+    except IndexError:
+        ft = 0
+    context_data, target_data, s_data = compute_context_vectors(lang, ft)
     knn_data, svc_data = train_classifiers(context_data, target_data)
-    context_dev, instance_dev = parse_dev_data(lang, s_data)
-    test_classifier(lang, 'knn', knn_data, context_dev, instance_dev)
-    test_classifier(lang, 'svc', svc_data, context_dev, instance_dev)
+    context_dev, instance_dev = parse_dev_data(lang, ft, s_data)
+    test_classifier(lang, ft, 'knn', knn_data, context_dev, instance_dev)
+    test_classifier(lang, ft, 'svc', svc_data, context_dev, instance_dev)
     
