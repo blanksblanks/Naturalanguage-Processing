@@ -1,9 +1,11 @@
+from __future__ import division
 from xml.dom import minidom
-import string
 import json
 import codecs
 import sys
 import unicodedata
+import string
+import math
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import *
@@ -170,6 +172,51 @@ def find_hnyms(tokens):
         hnyms.append(both)
     print hnyms
     return hnyms
+ 
+def compute_relevance(s_i_data, s_data, lexelt):
+    word_c = {}
+    # senses_c = {}
+    coappear_c = {}
+    relevance = {}
+    
+    for inst in s_i_data[lexelt]:
+        sense = inst[1]
+        s_i = inst[2]
+        
+        # count number of instances sense appears for lexelt 
+        '''if sense not in senses_c:
+            senses_c[word] = 1
+        else:
+            senses_c[word] += 1'''
+
+        for word in s_i: # word, count in s_i.items():
+            # count number of instances a context word appears
+            if word not in word_c:
+                word_c[word] = 1
+            else:
+                word_c[word] += 1
+            # count number of instances word and sense appear together
+            if (sense,word) not in coappear_c:
+                coappear_c[(sense,word)] = 1
+            else:
+                coappear_c[(sense,word)] += 1
+    
+    for pair in coappear_c:
+        word = pair[1]
+        psc = coappear_c[pair] / word_c[word]
+        pnotsc = (word_c[word] - coappear_c[pair]) / word_c[word]
+        if (pnotsc == 0):
+            p = 100 # Assign arbitrarily high score
+        else:
+            p = psc / pnotsc
+        relevance[pair] = math.log(p,2)
+    
+    scores = sorted(relevance, key=lambda k:-relevance[k])
+    
+    # print 'relevance', relevance
+    print 'sorted', scores
+    
+    sys.exit(1)
 
 
 # ============================================================
@@ -283,7 +330,11 @@ def compute_context_vectors(language, features):
             # and append to s_data[lexelt]
             s = list(s)
             s_data[lexelt] = s
-            # print lexelt, '!SET!', s_data[lexelt]
+            
+            # print 's_data for', lexelt, s_data[lexelt]
+            # print 's_i_data for', lexelt, s_i_data[lexelt]
+            if (5 in features):
+                compute_relevance(s_i_data, s_data, lexelt)
 
             # calculate context vectors for each instance in ordered s_i_data[lexelt] list
             for inst in s_i_data[lexelt]:
