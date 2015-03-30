@@ -102,12 +102,7 @@ def getFrequentSense(lexelt, sense_dict):
         pass
     return sense
 
-# 4
-def replace_accented(input_str):
-    nkfd_form = unicodedata.normalize('NFKD', input_str)
-    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
-# 2
 def most_frequent_sense(language, sense_dict):
     data = parse_data('data/' + language + '-dev.xml')
     outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
@@ -117,7 +112,18 @@ def most_frequent_sense(language, sense_dict):
             outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
     outfile.close()
 
-# remove stop words
+
+
+# ============================================================
+# Preprocessing Functions
+# ============================================================
+
+''' Replace accents so unicode text can be cast to string '''
+def replace_accented(input_str):
+    nkfd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+
+''' Remove stop words '''
 def remove_stops(tokens, lang):
     lang = lang.lower()
     try:
@@ -127,12 +133,42 @@ def remove_stops(tokens, lang):
         sys.exit(1)
     return filtered
 
-# stem tokens using Porter Stemmer
+''' Stem tokens using the Porter Stemmer '''
 def stem(tokens):
     stemmed = []
     for token in tokens:
         stemmed.append(stemmer.stem(token))
     return stemmed
+
+''' Return list of synonyms for list of tokens '''
+def find_synonyms(tokens):
+    synonyms = []
+    for token in tokens:
+        # [ss.name() for ss in wn.synsets(token)]
+        # syn_list = ['.'.join(ss.name().split('.')[:-1]) for ss in wn.synsets(token)]
+        syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
+        synonyms.append(set(syn_list))
+    print synonyms
+    return synonyms
+
+''' Find hyponyms and hypernyms of tokens ''' 
+def find_hnyms(tokens):
+    hnyms = []
+    for token in tokens:
+        # for idx in xrange(len(wn.synsets(token))):
+        # ss = wn.synsets(token)[idx]
+        ss = wn.synsets(token)[0] # take only the first meaning instead of all
+        hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
+        hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
+        both = hypo.union(hyper)
+        hnyms.append(both)
+    print hnyms
+    return hnyms
+
+
+# ============================================================
+# Parsing and Computing Context Vectors
+# ============================================================
 
 '''
 If feature_type == 0, use default tokens for context vectors
@@ -142,6 +178,7 @@ If feature_type == 3, combine steps 1 and 2
 If feature_type == 4, obtain synonyms, hyponyms and hypernyms
 If feature_type == 5, compute relevance scores
 '''
+
 def compute_context_vectors(language, feature_type):
     # define our training data and parse with minidom
     input_file = 'data/' + language + '-train.xml'
@@ -209,7 +246,7 @@ def compute_context_vectors(language, feature_type):
                     if (feature_type == 2 or feature_type == 3):
                         tokens = stem(tokens)
                         # print 'stem tokens'
-                    # print 'tokens', tokens
+                    print 'tokens', tokens
 
                     s.extend(tokens)
 
@@ -268,28 +305,6 @@ def compute_context_vectors(language, feature_type):
 
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
-def train_classifiers(context_data, target_data):
-    # initialize K-Nearest Neighbors and Linear SVM classifiers
-    knn_data = {}
-    clf_data = {}
-
-    for lexelt in context_data:
-        context_list = context_data[lexelt]
-        target_list = target_data[lexelt]
-
-        # KNN: given a new observation, take the label of training samples closests to its
-        # n-dimensional space, where nis the number of features in each sample
-        knn = neighbors.KNeighborsClassifier()
-        knn.fit(context_list, target_list)
-        knn_data[lexelt] = knn
-
-        # SVM: learn from existing data by creating an estimator and calling its fit(X, Y) method 
-        # SVMs try to construct a hyperplane maximizing the margin between two classes
-        clf = svm.LinearSVC()
-        clf.fit(context_list, target_list)
-        clf_data[lexelt] = clf
-
-        return knn_data, clf_data
 
 def parse_dev_data(language, feature_type, s_data):
     input_file = 'data/' + language + '-dev.xml'
@@ -356,6 +371,8 @@ def parse_dev_data(language, feature_type, s_data):
     return context_data, instance_data
 
 
+
+
 def train_classifiers(context_data, target_data):
     # initialize K-Nearest Neighbors and Linear SVM classifiers
     knn_data = {}
@@ -399,6 +416,10 @@ if __name__ == '__main__':
         sys.exit(0)
     # sense_dict = build_dict(sys.argv[1])
     # most_frequent_sense(sys.argv[1], sense_dict)
+    
+    find_synonyms(['cat','dog'])
+    find_hnyms(['cat','dog'])
+    
     lang = sys.argv[1]
     try:
         ft = int(sys.argv[2])
