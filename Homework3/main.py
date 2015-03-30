@@ -1,4 +1,5 @@
 from xml.dom import minidom
+import string
 import json
 import codecs
 import sys
@@ -123,6 +124,11 @@ def replace_accented(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
+''' Remove punctuation '''
+def remove_punc(tokens):
+    unpunctuated = [token for token in tokens if token not in string.punctuation]
+    return unpunctuated
+
 ''' Remove stop words '''
 def remove_stops(tokens, lang):
     lang = lang.lower()
@@ -171,15 +177,15 @@ def find_hnyms(tokens):
 # ============================================================
 
 '''
-If feature_type == 0, use default tokens for context vectors
-If feature_type == 1, remove stop words
-If feature_type == 2, do stemming
-If feature_type == 3, combine steps 1 and 2
-If feature_type == 4, obtain synonyms, hyponyms and hypernyms
-If feature_type == 5, compute relevance scores
+If features include 0, use default tokens for context vectors
+If features include 1, remove stop words
+If features include 2, do stemming
+If features include 3, remove punctuation
+If features include 4, obtain synonyms, hyponyms and hypernyms
+If features include  5, compute relevance scores
 '''
 
-def compute_context_vectors(language, feature_type):
+def compute_context_vectors(language, features):
     # define our training data and parse with minidom
     input_file = 'data/' + language + '-train.xml'
     xmldoc = minidom.parse(input_file)
@@ -213,7 +219,7 @@ def compute_context_vectors(language, feature_type):
             #  - ordered list of instance id's
             #  - ordered list of sense id's
             s_i_data[lexelt] = []
-            s = []
+            s = set([])
             context_data[lexelt] = []
             instance_data[lexelt] = []
             target_data[lexelt] = []
@@ -239,21 +245,23 @@ def compute_context_vectors(language, feature_type):
                     posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
                     tokens = pretokens[-k:]
                     tokens.extend(posttokens[:k])
-                    
-                    if (feature_type == 1 or feature_type == 3):
+                   
+                    if (1 in features):
                         tokens = remove_stops(tokens, language)
-                        # print 'remove stops'
-                    if (feature_type == 2 or feature_type == 3):
+                    if (2 in features):
                         tokens = stem(tokens)
-                        # print 'stem tokens'
-                    print 'tokens', tokens
+                    if (3 in features):
+                        tokens = remove_punc(tokens)
+                    # print 'tokens', tokens
 
-                    s.extend(tokens)
+                    # s.extend(tokens)
 
                     # create s_i as a dictionary to keep track of words within k distance of
                     # current head and counts for the number of time it appears in the window
                     s_i = {}
                     for token in tokens:
+                        if token not in s:
+                            s.add(token)
                         if token in s_i:
                             s_i[token] += 1
                         else:
@@ -273,7 +281,7 @@ def compute_context_vectors(language, feature_type):
 
             # after iterating all t_i, ensure s is a unique list of set(union(s_i))
             # and append to s_data[lexelt]
-            s = list(set(s))
+            s = list(s)
             s_data[lexelt] = s
             # print lexelt, '!SET!', s_data[lexelt]
 
@@ -306,7 +314,7 @@ def compute_context_vectors(language, feature_type):
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
 
-def parse_dev_data(language, feature_type, s_data):
+def parse_dev_data(language, features, s_data):
     input_file = 'data/' + language + '-dev.xml'
     xmldoc = minidom.parse(input_file)
     context_data = {}
@@ -340,7 +348,7 @@ def parse_dev_data(language, feature_type, s_data):
             tokens = pretokens[-k:]
             tokens.extend(posttokens[:k])
             # print 'tokens', tokens
-            if (feature_type == 2 or feature_type == 3):
+            if (2 in features):
                 tokens = stem(tokens)
 
             # create s_i as a dictionary to keep track of words within k distance of
@@ -396,9 +404,11 @@ def train_classifiers(context_data, target_data):
     return knn_data, svc_data
 
 
-def test_classifier(language, feature_type, classifier, clf_data, context_dev, instance_dev):
+def test_classifier(language, feats, classifier, clf_data, context_dev, instance_dev):
     # data = parse_data('data/' + language + '-dev.xml')
-    outfile = codecs.open(language + '_' + str(feature_type) + '.' + classifier, encoding = 'utf-8', mode = 'w')
+    filename = (language + '_' + ''.join(feats) + '.' + classifier)
+    print 'writing to', filename + '...'
+    outfile = codecs.open(filename, encoding = 'utf-8', mode = 'w')
     for lexelt in context_dev:
         context_list = context_dev[lexelt]
         instance_list = instance_dev[lexelt]
@@ -411,23 +421,32 @@ def test_classifier(language, feature_type, classifier, clf_data, context_dev, i
     outfile.close()
 
 if __name__ == '__main__':
+    
     if len(sys.argv) < 2:
-        print 'Usage: python baseline.py [language]'
+        print 'Usage: python baseline.py [language] [feature ids]'
         sys.exit(0)
+
     # sense_dict = build_dict(sys.argv[1])
     # most_frequent_sense(sys.argv[1], sense_dict)
-    
-    find_synonyms(['cat','dog'])
-    find_hnyms(['cat','dog'])
+    # find_synonyms(['cat','dog'])
+    # find_hnyms(['cat','dog'])
     
     lang = sys.argv[1]
-    try:
-        ft = int(sys.argv[2])
-    except IndexError:
-        ft = 0
+    ft = set([int(i) for i in (sys.argv[2:])])
+    print ft
+
+    if 0 in ft:
+        print 'default: no processing...'
+    if 1 in ft:
+        print 'removing stops...'
+    if 2 in ft:
+        print 'stemming words...'
+    if 3 in ft: 
+        print 'removing punctuation...'
+
     context_data, target_data, s_data = compute_context_vectors(lang, ft)
     knn_data, svc_data = train_classifiers(context_data, target_data)
     context_dev, instance_dev = parse_dev_data(lang, ft, s_data)
-    test_classifier(lang, ft, 'knn', knn_data, context_dev, instance_dev)
-    test_classifier(lang, ft, 'svc', svc_data, context_dev, instance_dev)
+    test_classifier(lang, sys.argv[2:], 'knn', knn_data, context_dev, instance_dev)
+    test_classifier(lang, sys.argv[2:], 'svc', svc_data, context_dev, instance_dev)
     
