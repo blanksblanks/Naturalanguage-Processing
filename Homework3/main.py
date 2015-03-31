@@ -18,7 +18,9 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-k = 10 # set context window to 10 words preceding and following the head
+k = 5 # set context window to 10 words preceding and following the head
+top = 100 # number of 'top' words for each sense by relevance score
+
 stemmer = PorterStemmer()
 
 # ============================================================
@@ -126,9 +128,9 @@ def replace_accented(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
-''' Remove punctuation '''
+''' Remove punctuation and make all words lowercase'''
 def remove_punc(tokens):
-    unpunctuated = [token for token in tokens if token not in string.punctuation]
+    unpunctuated = [token.lower() for token in tokens if token not in string.punctuation]
     return unpunctuated
 
 ''' Remove stop words '''
@@ -173,21 +175,29 @@ def find_hnyms(tokens):
     print hnyms
     return hnyms
  
-def compute_relevance(s_i_data, s_data, lexelt):
+def compute_relevance(s_i_data, lexelt, features):
+    senses = {}
     word_c = {}
-    # senses_c = {}
+    senses_c = {}
     coappear_c = {}
     relevance = {}
-    
+    pmi = {}
+    most_rel = set([])
+    most_pmi = set([])
+
+    num_inst = len(s_i_data)
+
     for inst in s_i_data[lexelt]:
         sense = inst[1]
         s_i = inst[2]
         
         # count number of instances sense appears for lexelt 
-        '''if sense not in senses_c:
-            senses_c[word] = 1
+        if sense not in senses:
+            senses[sense] = 0
+        if sense not in senses_c:
+            senses_c[sense] = 1
         else:
-            senses_c[word] += 1'''
+            senses_c[sense] += 1
 
         for word in s_i: # word, count in s_i.items():
             # count number of instances a context word appears
@@ -202,21 +212,57 @@ def compute_relevance(s_i_data, s_data, lexelt):
                 coappear_c[(sense,word)] += 1
     
     for pair in coappear_c:
+        sense = pair[0]
         word = pair[1]
+        
         psc = coappear_c[pair] / word_c[word]
-        pnotsc = (word_c[word] - coappear_c[pair]) / word_c[word]
-        if (pnotsc == 0):
-            p = 100 # Assign arbitrarily high score
-        else:
-            p = psc / pnotsc
-        relevance[pair] = math.log(p,2)
+        
+        # calculate relevance score
+        if (5 in features):
+            pnotsc = (word_c[word] - coappear_c[pair]) / word_c[word]
+            if (pnotsc == 0):
+                p = 100 # Assign arbitrarily high score
+            else:
+                p = psc / pnotsc
+            relevance[pair] = math.log(p,2)
+        
+        # calculate pmi: log p(s,w) / p(s)p(w) = log p(s|w) / p(s)
+        if (6 in features):
+            ps = senses_c[sense] / num_inst
+            pmi[pair] = math.log(psc/ps, 2)
+            # pw = word_c[word] / num_inst
     
-    scores = sorted(relevance, key=lambda k:-relevance[k])
+    if (5 in features):
+        sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
+
+        # select top words for each sense for final set of features
+        for pair in sorted_rel:
+            # print pair, relevance[pair]
+            sense = pair[0]
+            word = pair[1]
+            if senses[sense] < top:
+            # print 'added', word
+                most_rel.add(word)
+                senses[sense] += 1
     
+        print "vector length:", len(most_rel)
+        return most_rel
+    
+    if (6 in features):
+        sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
+        for pair in sorted_pmi:
+            sense = pair[0]
+            word = pair[1]
+            if senses[sense] < top:
+            # print 'added', word
+                most_pmi.add(word)
+                senses[sense] += 1
+        return most_pmi
+
     # print 'relevance', relevance
-    print 'sorted', scores
-    
-    sys.exit(1)
+    # print 'sorted', sorted_rel
+    # print 'most relev ant', most_rel
+    # return most_rel, most_pmi
 
 
 # ============================================================
@@ -227,7 +273,7 @@ def compute_relevance(s_i_data, s_data, lexelt):
 If features include 0, use default tokens for context vectors
 If features include 1, remove stop words
 If features include 2, do stemming
-If features include 3, remove punctuation
+If features include 3, remove punctuation and make words lowercase
 If features include 4, obtain synonyms, hyponyms and hypernyms
 If features include  5, compute relevance scores
 '''
@@ -292,7 +338,7 @@ def compute_context_vectors(language, features):
                     posttokens = nltk.word_tokenize(l.childNodes[2].nodeValue)
                     tokens = pretokens[-k:]
                     tokens.extend(posttokens[:k])
-                   
+                 
                     if (1 in features):
                         tokens = remove_stops(tokens, language)
                     if (2 in features):
@@ -325,17 +371,18 @@ def compute_context_vectors(language, features):
 
                     # append tuple to s_i_data[lexelt]
                     s_i_data[lexelt].append((instance_id, sense_id, s_i))
+            
+            print "vector length", len(s)
 
-            # after iterating all t_i, ensure s is a unique list of set(union(s_i))
-            # and append to s_data[lexelt]
+            # print 's_data for', lexelt, s_data[lexelt]
+            # print 's_i_data for', lexelt, s_i_data[lexelt]
+            if (5 in features or 6 in features):
+                s = compute_relevance(s_i_data, lexelt, features)
+
+            # transform feature set to list and  append to s_data[lexelt]
             s = list(s)
             s_data[lexelt] = s
             
-            # print 's_data for', lexelt, s_data[lexelt]
-            # print 's_i_data for', lexelt, s_i_data[lexelt]
-            if (5 in features):
-                compute_relevance(s_i_data, s_data, lexelt)
-
             # calculate context vectors for each instance in ordered s_i_data[lexelt] list
             for inst in s_i_data[lexelt]:
                 # print 's_i_data', s_i_data[lexelt]
@@ -401,6 +448,8 @@ def parse_dev_data(language, features, s_data):
             # print 'tokens', tokens
             if (2 in features):
                 tokens = stem(tokens)
+            if (3 in features):
+                tokens = remove_punc(tokens)
 
             # create s_i as a dictionary to keep track of words within k distance of
             # current head and counts for the number of time it appears in the window
@@ -428,9 +477,6 @@ def parse_dev_data(language, features, s_data):
             context_data[lexelt].append(vector)
             instance_data[lexelt].append(instance)
     return context_data, instance_data
-
-
-
 
 def train_classifiers(context_data, target_data):
     # initialize K-Nearest Neighbors and Linear SVM classifiers
