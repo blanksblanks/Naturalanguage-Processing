@@ -262,7 +262,7 @@ def compute_relevance(s_i_data, lexelt, features):
             chi[pair] = ((obs - exp) * (obs - exp)) / exp
         sorted_chi = sorted(chi, key=lambda k:chi[k])
         for pair in sorted_chi:
-            print pair, chi[pair]
+            print chi[pair], pair
             sense = pair[0]
             word = pair[1]
             if senses[sense] < top:
@@ -273,16 +273,19 @@ def compute_relevance(s_i_data, lexelt, features):
     
     if (5 in features):
         sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
-
+        
         # select top words for each sense for final set of features
         for pair in sorted_rel:
-            # print pair, relevance[pair]
+            print relevance[pair], pair
             sense = pair[0]
             word = pair[1]
-            if senses[sense] < top:
-            # print 'added', word
+            '''if senses[sense] < top:
+                print 'ADDED', word
                 most_rel.add(word)
                 senses[sense] += 1
+            '''
+            if (relevance[pair] > -2.0):
+                most_rel.add(word)
     
         print "vector length:", len(most_rel)
         return most_rel
@@ -290,10 +293,11 @@ def compute_relevance(s_i_data, lexelt, features):
     if (6 in features):
         sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
         for pair in sorted_pmi:
+            print pmi[pair], pair
             sense = pair[0]
             word = pair[1]
             if senses[sense] < top:
-            # print 'added', word
+                print 'ADDED', word
                 most_pmi.add(word)
                 senses[sense] += 1
         return most_pmi
