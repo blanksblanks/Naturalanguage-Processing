@@ -18,7 +18,7 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-k = 5 # set context window to 10 words preceding and following the head
+k = 10 # set context window to 10 words preceding and following the head
 top = 100 # number of 'top' words for each sense by relevance score
 
 stemmer = PorterStemmer()
@@ -151,15 +151,26 @@ def stem(tokens):
     return stemmed
 
 ''' Return list of synonyms for list of tokens '''
-def find_synonyms(tokens):
+def find_synonyms(tokens, language):
     synonyms = []
+    sss = []
     for token in tokens:
         # [ss.name() for ss in wn.synsets(token)]
         # syn_list = ['.'.join(ss.name().split('.')[:-1]) for ss in wn.synsets(token)]
-        syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
-        synonyms.append(set(syn_list))
-    print synonyms
-    return synonyms
+        if (language == 'English'):
+            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
+            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        if (language == 'Spanish'):
+            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='spa') if '_' not in ss.name()]
+            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        if (language == 'Catalan'):
+            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='cat') if '_' not in ss.name()]
+            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        # synonyms.append(set(syn_list))
+        synonyms.extend(set(syn_list))
+        sss.extend(set(ss_list))
+    print 'synonyms', synonyms
+    return synonyms, sss
 
 ''' Find hyponyms and hypernyms of tokens ''' 
 def find_hnyms(tokens):
@@ -167,12 +178,19 @@ def find_hnyms(tokens):
     for token in tokens:
         # for idx in xrange(len(wn.synsets(token))):
         # ss = wn.synsets(token)[idx]
-        ss = wn.synsets(token)[0] # take only the first meaning instead of all
-        hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
-        hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
-        both = hypo.union(hyper)
-        hnyms.append(both)
-    print hnyms
+        # ss = wn.synsets(token)[0] # take only the first meaning instead of all
+        ss = wn.synset(token)
+        # print 'ss', ss
+        # sys.exit(1)
+        # hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
+        # hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
+        # both = hypo.union(hyper)
+        # hnyms.append(both)
+        hypo = [h.name().split('.')[0] for h in ss.hyponyms() if '_' not in h.name()]
+        hyper = [h.name().split('.')[0] for h in ss.hypernyms() if '_' not in h.name()] 
+        hnyms.extend(hypo)
+        hnyms.extend(hyper)
+    print 'hyponyms and hypernyms', hnyms
     return hnyms
  
 def compute_relevance(s_i_data, lexelt, features):
@@ -345,6 +363,10 @@ def compute_context_vectors(language, features):
                         tokens = stem(tokens)
                     if (3 in features):
                         tokens = remove_punc(tokens)
+                    if (4 in features):
+                        tokens, sss = find_synonyms(tokens, language)
+                        hnyms = find_hnyms(sss, language)
+                        tokens.extend(hnyms)
                     # print 'tokens', tokens
 
                     # s.extend(tokens)
