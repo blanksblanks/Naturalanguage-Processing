@@ -151,25 +151,25 @@ def stem(tokens):
     return stemmed
 
 ''' Return list of synonyms for list of tokens '''
-def find_synonyms(tokens, language):
+def find_synonyms(tokens):
     synonyms = []
     sss = []
     for token in tokens:
         # [ss.name() for ss in wn.synsets(token)]
         # syn_list = ['.'.join(ss.name().split('.')[:-1]) for ss in wn.synsets(token)]
-        if (language == 'English'):
-            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
-            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
-        if (language == 'Spanish'):
-            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='spa') if '_' not in ss.name()]
-            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
-        if (language == 'Catalan'):
-            syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='cat') if '_' not in ss.name()]
-            ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        # if (language == 'English'):
+        syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
+        ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        # if (language == 'Spanish'):
+        #    syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='spa') if '_' not in ss.name()]
+        #    ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
+        # if (language == 'Catalan'):
+        #    syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='cat') if '_' not in ss.name()]
+        #    ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
         # synonyms.append(set(syn_list))
         synonyms.extend(set(syn_list))
         sss.extend(set(ss_list))
-    print 'synonyms', synonyms
+    # print 'synonyms', synonyms
     return synonyms, sss
 
 ''' Find hyponyms and hypernyms of tokens ''' 
@@ -190,7 +190,7 @@ def find_hnyms(tokens):
         hyper = [h.name().split('.')[0] for h in ss.hypernyms() if '_' not in h.name()] 
         hnyms.extend(hypo)
         hnyms.extend(hyper)
-    print 'hyponyms and hypernyms', hnyms
+    # print 'hyponyms and hypernyms', hnyms
     return hnyms
  
 def compute_relevance(s_i_data, lexelt, features):
@@ -364,8 +364,8 @@ def compute_context_vectors(language, features):
                     if (3 in features):
                         tokens = remove_punc(tokens)
                     if (4 in features):
-                        tokens, sss = find_synonyms(tokens, language)
-                        hnyms = find_hnyms(sss, language)
+                        tokens, sss = find_synonyms(tokens)
+                        hnyms = find_hnyms(sss)
                         tokens.extend(hnyms)
                     # print 'tokens', tokens
 
