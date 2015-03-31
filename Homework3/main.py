@@ -18,7 +18,7 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-k = 10 # set context window to 10 words preceding and following the head
+k = 20 # set context window to 10 words preceding and following the head
 top = 100 # number of 'top' words for each sense by relevance score
 
 stemmer = PorterStemmer()
@@ -196,14 +196,14 @@ def find_hnyms(tokens):
 def compute_relevance(s_i_data, lexelt, features):
     senses = {}
     word_c = {}
-    senses_c = {}
+    sense_c = {}
     coappear_c = {}
     relevance = {}
     pmi = {}
     most_rel = set([])
     most_pmi = set([])
 
-    num_inst = len(s_i_data)
+    t = len(s_i_data)
 
     for inst in s_i_data[lexelt]:
         sense = inst[1]
@@ -212,10 +212,10 @@ def compute_relevance(s_i_data, lexelt, features):
         # count number of instances sense appears for lexelt 
         if sense not in senses:
             senses[sense] = 0
-        if sense not in senses_c:
-            senses_c[sense] = 1
+        if sense not in sense_c:
+            sense_c[sense] = 1
         else:
-            senses_c[sense] += 1
+            sense_c[sense] += 1
 
         for word in s_i: # word, count in s_i.items():
             # count number of instances a context word appears
@@ -246,9 +246,30 @@ def compute_relevance(s_i_data, lexelt, features):
         
         # calculate pmi: log p(s,w) / p(s)p(w) = log p(s|w) / p(s)
         if (6 in features):
-            ps = senses_c[sense] / num_inst
+            ps = sense_c[sense] / t
             pmi[pair] = math.log(psc/ps, 2)
-            # pw = word_c[word] / num_inst
+            # pw = word_c[word] / t
+        
+    if (7 in features):
+        chi = {}
+        sorted_chi = []
+        most_chi = set([])
+        for pair in coappear_c:
+            s = sense_c[sense]
+            w = word_c[word]
+            exp = s/t * w/t * t
+            obs = coappear_c[pair]
+            chi[pair] = ((obs - exp) * (obs - exp)) / exp
+        sorted_chi = sorted(chi, key=lambda k:chi[k])
+        for pair in sorted_chi:
+            print pair, chi[pair]
+            sense = pair[0]
+            word = pair[1]
+            if senses[sense] < top:
+                print 'added', word
+                most_chi.add(word)
+        print "vector length:", len(most_rel)
+        return most_chi
     
     if (5 in features):
         sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
@@ -276,6 +297,7 @@ def compute_relevance(s_i_data, lexelt, features):
                 most_pmi.add(word)
                 senses[sense] += 1
         return most_pmi
+    
 
     # print 'relevance', relevance
     # print 'sorted', sorted_rel
@@ -398,7 +420,7 @@ def compute_context_vectors(language, features):
 
             # print 's_data for', lexelt, s_data[lexelt]
             # print 's_i_data for', lexelt, s_i_data[lexelt]
-            if (5 in features or 6 in features):
+            if (5 in features or 6 in features or 7 in features):
                 s = compute_relevance(s_i_data, lexelt, features)
 
             # transform feature set to list and  append to s_data[lexelt]
