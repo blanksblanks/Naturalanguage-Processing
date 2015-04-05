@@ -18,7 +18,7 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-k = 20 # set context window to 10 words preceding and following the head
+k = 3 # set context window to 10 words preceding and following the head
 top = 100 # number of 'top' words for each sense by relevance score
 
 stemmer = PorterStemmer()
@@ -283,9 +283,12 @@ def compute_relevance(s_i_data, lexelt, features):
                 print 'ADDED', word
                 most_rel.add(word)
                 senses[sense] += 1
-            '''
             if (relevance[pair] > -2.0):
+                most_rel.add(word)'''
+            if senses[sense] < int(sense_c[sense] * 0.5):
+                print senses[sense], '<', int(sense_c[sense] * 0.25)
                 most_rel.add(word)
+                senses[sense] += 1
     
         print "vector length:", len(most_rel)
         return most_rel
@@ -293,11 +296,11 @@ def compute_relevance(s_i_data, lexelt, features):
     if (6 in features):
         sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
         for pair in sorted_pmi:
-            print pmi[pair], pair
+            # print pmi[pair], pair
             sense = pair[0]
             word = pair[1]
             if senses[sense] < top:
-                print 'ADDED', word
+                # print 'ADDED', word
                 most_pmi.add(word)
                 senses[sense] += 1
         return most_pmi
@@ -587,7 +590,15 @@ if __name__ == '__main__':
     if 2 in ft:
         print 'stemming words...'
     if 3 in ft: 
-        print 'removing punctuation...'
+        print 'removing punctuation and making lowercase...'
+    if 4 in ft:
+        print 'generating list of synonyms, hypernyms and hyponyms...'
+    if 5 in ft:
+        print 'computing relevance score...'
+    if 6 in ft:
+        print 'computing pointwise mutual information...'
+    if 7 in ft:
+        print 'computing chi square values...'
 
     context_data, target_data, s_data = compute_context_vectors(lang, ft)
     knn_data, svc_data = train_classifiers(context_data, target_data)
