@@ -18,106 +18,10 @@ from sklearn import neighbors
 # Constants
 # ============================================================
 
-k = 3 # set context window to 10 words preceding and following the head
+k = 10 # set context window (words preceding and following the head)
 top = 100 # number of 'top' words for each sense by relevance score
 
 stemmer = PorterStemmer()
-
-# ============================================================
-# Main Functions
-# ============================================================
-
-# 2
-def parse_data(input_file):
-    '''
-    Parse the .xml dev data file
-
-    param str input_file: The input data file path
-    return dict: A dictionary with the following structure
-            {
-                    lexelt: [(instance_id, context), ...],
-                    ...
-            }
-    '''
-    xmldoc = minidom.parse(input_file)
-    data = {}
-    lex_list = xmldoc.getElementsByTagName('lexelt')
-    for node in lex_list:
-        lexelt = node.getAttribute('item')
-        data[lexelt] = []
-        inst_list = node.getElementsByTagName('instance')
-        for inst in inst_list:
-            instance_id = inst.getAttribute('id')
-            if language == 'English':
-                l = inst.getElementsByTagName('context')[0]
-            else:
-                l = inst.getElementsByTagName('target')[0]
-            context = (l.childNodes[0].nodeValue + l.childNodes[1].firstChild.nodeValue + l.childNodes[2].nodeValue).replace('\n', '')
-            # print 'context', context
-            data[lexelt].append((instance_id, context))
-    print 'data', data
-    return data
-
-# 1
-def build_dict(language):
-    '''
-    Count the frequency of each sense
-    '''
-    data = {}
-    xmldoc = minidom.parse('data/' + language + '-train.xml')
-    data = {}
-    '''head_list = xmldoc.getElementsByTagName('head')
-    # print 'head_list', head_list
-    for head in head_list:
-        hd = head.childNodes[0].nodeValue
-            print 'head', hd
-    '''
-    lex_list = xmldoc.getElementsByTagName('lexelt')
-    for node in lex_list:
-        lexelt = node.getAttribute('item')
-        # print 'lexelt', lexelt
-        data[lexelt] = {}
-        inst_list = node.getElementsByTagName('instance')
-        for inst in inst_list:
-            sense_id = inst.getElementsByTagName('answer')[0].getAttribute('senseid')
-            # print 'sense_id',  sense_id
-            try:
-                cnt = data[lexelt][sense_id]
-            except KeyError:
-                data[lexelt][sense_id] = 0
-            data[lexelt][sense_id] += 1
-    
-    record = {}
-    for key, cntDict in data.iteritems():
-        sense = max(cntDict, key = lambda s: cntDict[s])
-        print 'key, cntDict, sense', key, cntDict, sense
-        record[key] = sense
-    print 'record', record
-    return record
-
-# 5
-def getFrequentSense(lexelt, sense_dict):
-    '''
-        Return the most frequent sense of a word (lexelt) in the training set
-        '''
-    sense = ''
-    try:
-        sense = sense_dict[lexelt]
-    except KeyError:
-        pass
-    return sense
-
-
-def most_frequent_sense(language, sense_dict):
-    data = parse_data('data/' + language + '-dev.xml')
-    outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
-    for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
-        for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
-            sid = getFrequentSense(lexelt, sense_dict)
-            outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
-    outfile.close()
-
-
 
 # ============================================================
 # Preprocessing Functions
@@ -157,16 +61,8 @@ def find_synonyms(tokens):
     for token in tokens:
         # [ss.name() for ss in wn.synsets(token)]
         # syn_list = ['.'.join(ss.name().split('.')[:-1]) for ss in wn.synsets(token)]
-        # if (language == 'English'):
         syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
         ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
-        # if (language == 'Spanish'):
-        #    syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='spa') if '_' not in ss.name()]
-        #    ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
-        # if (language == 'Catalan'):
-        #    syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token,lang='cat') if '_' not in ss.name()]
-        #    ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
-        # synonyms.append(set(syn_list))
         synonyms.extend(set(syn_list))
         sss.extend(set(ss_list))
     # print 'synonyms', synonyms
@@ -176,33 +72,38 @@ def find_synonyms(tokens):
 def find_hnyms(tokens):
     hnyms = []
     for token in tokens:
-        # for idx in xrange(len(wn.synsets(token))):
-        # ss = wn.synsets(token)[idx]
-        # ss = wn.synsets(token)[0] # take only the first meaning instead of all
         ss = wn.synset(token)
-        # print 'ss', ss
-        # sys.exit(1)
-        # hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
-        # hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
-        # both = hypo.union(hyper)
-        # hnyms.append(both)
         hypo = [h.name().split('.')[0] for h in ss.hyponyms() if '_' not in h.name()]
         hyper = [h.name().split('.')[0] for h in ss.hypernyms() if '_' not in h.name()] 
         hnyms.extend(hypo)
         hnyms.extend(hyper)
+        # for idx in xrange(len(wn.synsets(token))):
+        # ss = wn.synsets(token)[idx]
+        # ss = wn.synsets(token)[0] # take only the first meaning instead of all
+        # print 'ss', ss
+        # recursively travel up and down all hypos
+        # hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
+        # hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
+        # both = hypo.union(hyper)
+        # hnyms.append(both)
     # print 'hyponyms and hypernyms', hnyms
     return hnyms
  
+# ============================================================
+#  Computing Relevances for Feature Extraction
+# ============================================================
+
+'''
+If features include 5, compute relevance scores
+If features include 6, compute pointwise mutual information
+If features include 7, compute chi square
+'''
+
 def compute_relevance(s_i_data, lexelt, features):
     senses = {}
     word_c = {}
     sense_c = {}
     coappear_c = {}
-    relevance = {}
-    pmi = {}
-    most_rel = set([])
-    most_pmi = set([])
-
     t = len(s_i_data)
 
     for inst in s_i_data[lexelt]:
@@ -217,39 +118,97 @@ def compute_relevance(s_i_data, lexelt, features):
         else:
             sense_c[sense] += 1
 
-        for word in s_i: # word, count in s_i.items():
-            # count number of instances a context word appears
+        # count number of instances a context word appear, and 
+        # number of instances word and sense appear together
+        for word in s_i:
             if word not in word_c:
                 word_c[word] = 1
             else:
                 word_c[word] += 1
-            # count number of instances word and sense appear together
             if (sense,word) not in coappear_c:
                 coappear_c[(sense,word)] = 1
             else:
                 coappear_c[(sense,word)] += 1
     
+    if (5 in features):
+        relevance = {}
+        most_rel = set([])
+
+    if (6 in features):
+        pmi = {}
+        most_pmi = set([])
+
+    # calculate p(s|c): probability word w has sense s when context word c appears
+    # number of test instances (t_i) word c and sense s / number of t_i with c
+    total = 0
     for pair in coappear_c:
         sense = pair[0]
         word = pair[1]
-        
         psc = coappear_c[pair] / word_c[word]
         
-        # calculate relevance score
+        # calculate relevance score: log(p(s|c) / p(!s|c))
         if (5 in features):
             pnotsc = (word_c[word] - coappear_c[pair]) / word_c[word]
             if (pnotsc == 0):
-                p = 100 # Assign arbitrarily high score
+                p = 100 # assign arbitrarily high score
             else:
                 p = psc / pnotsc
             relevance[pair] = math.log(p,2)
-        
+            total += relevance[pair] 
+
         # calculate pmi: log p(s,w) / p(s)p(w) = log p(s|w) / p(s)
         if (6 in features):
             ps = sense_c[sense] / t
             pmi[pair] = math.log(psc/ps, 2)
+            total += pmi[pair]
             # pw = word_c[word] / t
-        
+    
+   # extract only top features for relevance scores
+    if (5 in features):
+        avg = total/len(relevance)
+        print ("avg:", avg)
+        sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
+        # print sorted_rel
+        for pair in sorted_rel:
+            # print relevance[pair], pair
+            sense = pair[0]
+            word = pair[1]
+            '''if senses[sense] < int(sense_c[sense] * 0.5):
+                print senses[sense], '<', int(sense_c[sense] * 0.25)
+                most_rel.add(word)
+                senses[sense] += 1
+            if senses[sense] < top:
+                print 'ADDED', word
+                most_rel.add(word)
+                senses[sense] += 1'''
+            # set a threshold value
+            if (relevance[pair] > -2.0): # avg
+                most_rel.add(word)
+        print "vector length:", len(most_rel)
+        return most_rel
+
+    # extract only top features for pmi
+    if (6 in features):
+        avg = total/len(pmi)
+        print ("avg:", avg)
+        sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
+        # print sorted_pmi
+        for pair in sorted_pmi:
+            total += pmi[pair]
+            # print pmi[pair], pair
+            sense = pair[0]
+            word = pair[1]
+            '''if senses[sense] < top:
+                # print 'ADDED', word
+                most_pmi.add(word)
+                senses[sense] += 1'''
+            # set a threshold value
+            if (pmi[pair] > avg):
+                most_pmi.add(word)
+        print "vector length:", len(most_pmi)
+        return most_pmi
+    
+    # calculate chi square
     if (7 in features):
         chi = {}
         sorted_chi = []
@@ -260,57 +219,29 @@ def compute_relevance(s_i_data, lexelt, features):
             exp = s/t * w/t * t
             obs = coappear_c[pair]
             chi[pair] = ((obs - exp) * (obs - exp)) / exp
+            total += chi[pair]
+        avg = total/len(chi)
+        print ("avg:", avg)
+        # keep only top features
         sorted_chi = sorted(chi, key=lambda k:chi[k])
+        # print sorted_chi
         for pair in sorted_chi:
-            print chi[pair], pair
-            sense = pair[0]
+            # print chi[pair], pair
+            '''sense = pair[0]
             word = pair[1]
             if senses[sense] < top:
-                print 'added', word
+                # print 'added', word
+                most_chi.add(word)'''
+            # set a threshold value
+            if (chi[pair] > avg):
                 most_chi.add(word)
-        print "vector length:", len(most_rel)
+        print "vector length:", len(most_chi)
         return most_chi
-    
-    if (5 in features):
-        sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
-        
-        # select top words for each sense for final set of features
-        for pair in sorted_rel:
-            print relevance[pair], pair
-            sense = pair[0]
-            word = pair[1]
-            '''if senses[sense] < top:
-                print 'ADDED', word
-                most_rel.add(word)
-                senses[sense] += 1
-            if (relevance[pair] > -2.0):
-                most_rel.add(word)'''
-            if senses[sense] < int(sense_c[sense] * 0.5):
-                print senses[sense], '<', int(sense_c[sense] * 0.25)
-                most_rel.add(word)
-                senses[sense] += 1
-    
-        print "vector length:", len(most_rel)
-        return most_rel
-    
-    if (6 in features):
-        sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
-        for pair in sorted_pmi:
-            # print pmi[pair], pair
-            sense = pair[0]
-            word = pair[1]
-            if senses[sense] < top:
-                # print 'ADDED', word
-                most_pmi.add(word)
-                senses[sense] += 1
-        return most_pmi
-    
 
     # print 'relevance', relevance
     # print 'sorted', sorted_rel
     # print 'most relev ant', most_rel
     # return most_rel, most_pmi
-
 
 # ============================================================
 # Parsing and Computing Context Vectors
@@ -322,7 +253,9 @@ If features include 1, remove stop words
 If features include 2, do stemming
 If features include 3, remove punctuation and make words lowercase
 If features include 4, obtain synonyms, hyponyms and hypernyms
-If features include  5, compute relevance scores
+If features include 5, compute relevance scores
+If features include 6, compute pointwise mutual information
+If features include 7, compute chi square
 '''
 
 def compute_context_vectors(language, features):
@@ -457,11 +390,11 @@ def compute_context_vectors(language, features):
                     # print 'instance', instance
                     # print 'sense', sense
                     # print 'vector', vector
+
     # print 'target_data', target_data
     return context_data, target_data, s_data
 
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
-
 
 def parse_dev_data(language, features, s_data):
     input_file = 'data/' + language + '-dev.xml'
@@ -529,6 +462,10 @@ def parse_dev_data(language, features, s_data):
             instance_data[lexelt].append(instance)
     return context_data, instance_data
 
+# ============================================================
+# Training and Testing Classifier
+# ============================================================
+
 def train_classifiers(context_data, target_data):
     # initialize K-Nearest Neighbors and Linear SVM classifiers
     knn_data = {}
@@ -551,7 +488,6 @@ def train_classifiers(context_data, target_data):
 
     return knn_data, svc_data
 
-
 def test_classifier(language, feats, classifier, clf_data, context_dev, instance_dev):
     # data = parse_data('data/' + language + '-dev.xml')
     filename = (language + '_' + ''.join(feats) + '.' + classifier)
@@ -568,6 +504,104 @@ def test_classifier(language, feats, classifier, clf_data, context_dev, instance
             outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
     outfile.close()
 
+# ============================================================
+# Functions from Baseline.py
+# ============================================================
+
+# 2
+def parse_data(input_file):
+    '''
+    Parse the .xml dev data file
+
+    param str input_file: The input data file path
+    return dict: A dictionary with the following structure
+            {
+                    lexelt: [(instance_id, context), ...],
+                    ...
+            }
+    '''
+    xmldoc = minidom.parse(input_file)
+    data = {}
+    lex_list = xmldoc.getElementsByTagName('lexelt')
+    for node in lex_list:
+        lexelt = node.getAttribute('item')
+        data[lexelt] = []
+        inst_list = node.getElementsByTagName('instance')
+        for inst in inst_list:
+            instance_id = inst.getAttribute('id')
+            if language == 'English':
+                l = inst.getElementsByTagName('context')[0]
+            else:
+                l = inst.getElementsByTagName('target')[0]
+            context = (l.childNodes[0].nodeValue + l.childNodes[1].firstChild.nodeValue + l.childNodes[2].nodeValue).replace('\n', '')
+            # print 'context', context
+            data[lexelt].append((instance_id, context))
+    print 'data', data
+    return data
+
+# 1
+def build_dict(language):
+    '''
+    Count the frequency of each sense
+    '''
+    data = {}
+    xmldoc = minidom.parse('data/' + language + '-train.xml')
+    data = {}
+    '''head_list = xmldoc.getElementsByTagName('head')
+    # print 'head_list', head_list
+    for head in head_list:
+        hd = head.childNodes[0].nodeValue
+            print 'head', hd
+    '''
+    lex_list = xmldoc.getElementsByTagName('lexelt')
+    for node in lex_list:
+        lexelt = node.getAttribute('item')
+        # print 'lexelt', lexelt
+        data[lexelt] = {}
+        inst_list = node.getElementsByTagName('instance')
+        for inst in inst_list:
+            sense_id = inst.getElementsByTagName('answer')[0].getAttribute('senseid')
+            # print 'sense_id',  sense_id
+            try:
+                cnt = data[lexelt][sense_id]
+            except KeyError:
+                data[lexelt][sense_id] = 0
+            data[lexelt][sense_id] += 1
+    
+    record = {}
+    for key, cntDict in data.iteritems():
+        sense = max(cntDict, key = lambda s: cntDict[s])
+        print 'key, cntDict, sense', key, cntDict, sense
+        record[key] = sense
+    print 'record', record
+    return record
+
+# 5
+def getFrequentSense(lexelt, sense_dict):
+    '''
+        Return the most frequent sense of a word (lexelt) in the training set
+        '''
+    sense = ''
+    try:
+        sense = sense_dict[lexelt]
+    except KeyError:
+        pass
+    return sense
+
+
+def most_frequent_sense(language, sense_dict):
+    data = parse_data('data/' + language + '-dev.xml')
+    outfile = codecs.open(language + '.baseline', encoding = 'utf-8', mode = 'w')
+    for lexelt, instances in sorted(data.iteritems(), key = lambda d: replace_accented(d[0].split('.')[0])):
+        for instance_id, context in sorted(instances, key = lambda d: int(d[0].split('.')[-1])):
+            sid = getFrequentSense(lexelt, sense_dict)
+            outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
+    outfile.close()
+
+# ============================================================
+# Main Function Calls
+# ============================================================
+
 if __name__ == '__main__':
     
     if len(sys.argv) < 2:
@@ -580,6 +614,8 @@ if __name__ == '__main__':
     # find_hnyms(['cat','dog'])
     
     lang = sys.argv[1]
+
+    # Select list of features to use
     ft = set([int(i) for i in (sys.argv[2:])])
     print ft
 
