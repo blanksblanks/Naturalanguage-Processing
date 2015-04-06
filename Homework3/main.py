@@ -33,7 +33,7 @@ def choose_features(lang):
         k = 6
         ft = set([2, 3])
     else: # Catalan
-        k = 3
+        k = 10
         ft = set([2, 3])
     
     print 'set k to', k
