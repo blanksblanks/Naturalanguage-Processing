@@ -259,6 +259,8 @@ If features include 7, compute chi square
 '''
 
 def compute_context_vectors(language, features):
+    print 'computing context vectors for training data...'
+
     # define our training data and parse with minidom
     input_file = 'data/' + language + '-train.xml'
     xmldoc = minidom.parse(input_file)
@@ -381,7 +383,9 @@ def compute_context_vectors(language, features):
                     for idx in xrange(len(s)):
                         word = s[idx]
                         if word in s_i:
-                            vector.append(s_i[word]) # append the count from s_i dict
+                            # change to binary feature set: either context word present (1) or not (0)
+                            vector.append(1)
+                            # vector.append(s_i[word]) # append the count from s_i dict
                         else:
                             vector.append(0)
                     context_data[lexelt].append(vector)
@@ -397,6 +401,8 @@ def compute_context_vectors(language, features):
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
 def parse_dev_data(language, features, s_data):
+    print 'computing context vectors for development data...'
+
     input_file = 'data/' + language + '-dev.xml'
     xmldoc = minidom.parse(input_file)
     context_data = {}
@@ -455,7 +461,9 @@ def parse_dev_data(language, features, s_data):
             for idx in xrange(len(s)):
                 word = s[idx]
                 if word in s_i:
-                    vector.append(s_i[word]) # append the count from s_i dict
+                    # change to binary feature set: either context word present (1) or not (0)
+                    vector.append(1)
+                    # vector.append(s_i[word]) # append the count from s_i dict
                 else:
                     vector.append(0)
             context_data[lexelt].append(vector)
@@ -605,7 +613,7 @@ def most_frequent_sense(language, sense_dict):
 if __name__ == '__main__':
     
     if len(sys.argv) < 2:
-        print 'Usage: python baseline.py [language] [feature ids]'
+        print 'usage: python baseline.py [language] [feature ids]'
         sys.exit(0)
 
     # sense_dict = build_dict(sys.argv[1])
@@ -614,10 +622,13 @@ if __name__ == '__main__':
     # find_hnyms(['cat','dog'])
     
     lang = sys.argv[1]
+    k = int(sys.argv[2])
+
+    print 'set k =', sys.argv[2] 
 
     # Select list of features to use
-    ft = set([int(i) for i in (sys.argv[2:])])
-    print ft
+    ft = set([int(i) for i in (sys.argv[3:])])
+    print 'feature set:', ft
 
     if 0 in ft:
         print 'default: no processing...'
