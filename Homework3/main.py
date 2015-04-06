@@ -109,7 +109,7 @@ def find_synonyms(tokens):
 def find_hnyms(tokens):
     hnyms = []
     for token in tokens:
-        ss = wn.synsets(token)[0] # take only first meaning
+        ss = wn.synset(token) # take only first meaning
         hypo = [h.name().split('.')[0] for h in ss.hyponyms() if '_' not in h.name()]
         hyper = [h.name().split('.')[0] for h in ss.hypernyms() if '_' not in h.name()] 
         hnyms.extend(hypo)
@@ -479,6 +479,10 @@ def parse_dev_data(language, k, features, s_data):
                 tokens = stem(tokens)
             if (3 in features):
                 tokens = remove_punc(tokens, language)
+            if (4 in features):
+                tokens, sss = find_synonyms(tokens)
+                hnyms = find_hnyms(sss)
+                tokens.extend(hnyms)
 
             # create s_i as a dictionary to keep track of words within k distance of
             # current head and counts for the number of time it appears in the window
@@ -660,10 +664,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     lang = sys.argv[1]
-
-    print find_synonyms(['dog'])
-    print find_hnyms(['dog'])
-    exit(1)
 
     k, ft = choose_features(lang)
     context_data, target_data, s_data = compute_context_vectors(lang, k, ft)
