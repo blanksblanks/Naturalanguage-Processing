@@ -15,14 +15,47 @@ from sklearn import svm
 from sklearn import neighbors
 
 # ============================================================
-# Experimental Values
+# Experimental Values and Feature Selection
 # ============================================================
 
-k = 3 # set context window (words preceding and following the head)
+# k = 10 # set context window (words preceding and following the head)
 top = 100 # number of 'top' words for each sense by relevance score
 perc = 1.0 # variation of 'top' where the int is a percentage of instances a sense appears
 
 stemmer = PorterStemmer()
+
+def choose_features(lang):
+    # Select list of features to use
+    if (lang == 'English'):
+        k = 3
+        ft = set([3])
+    elif (lang == 'Spanish'):
+        k = 6
+        ft = set([2, 3])
+    else: # Catalan
+        k = 3
+        ft = set([2, 3])
+    
+    print 'set k to', k
+    
+    if 0 in ft:
+        print 'default: no preprocessing...'
+    if 1 in ft:
+        print 'will remove stops...'
+    if 2 in ft:
+        print 'will stem words...'
+    if 3 in ft: 
+        print 'will remove punctuation and make lowercase...'
+    if 4 in ft:
+        print 'will generate list of synonyms, hypernyms and hyponyms...'
+    if 5 in ft:
+        print 'will compute relevance score...'
+    if 6 in ft:
+        print 'will compute  pointwise mutual information...'
+    if 7 in ft:
+        print 'will compute chi square values...'
+
+    return k, ft
 
 # ============================================================
 # Preprocessing Functions
@@ -267,7 +300,7 @@ If features include 6, compute pointwise mutual information
 If features include 7, compute chi square
 '''
 
-def compute_context_vectors(language, features):
+def compute_context_vectors(language, k, features):
     print 'computing context vectors from training data...'
 
     # define our training data and parse with minidom
@@ -297,7 +330,7 @@ def compute_context_vectors(language, features):
 
         # identify the lexelt to use as key for data dictionaries
             lexelt = node.getAttribute('item')
-            print 'lexelt', lexelt
+            # print 'lexelt', lexelt
 
             # initialize the following:
             #  - ordered list of tuples (instance, sense, s_i)
@@ -413,7 +446,7 @@ def compute_context_vectors(language, features):
 
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
-def parse_dev_data(language, features, s_data):
+def parse_dev_data(language, k, features, s_data):
     print 'parsing dev data...'
 
     input_file = 'data/' + language + '-dev.xml'
@@ -425,7 +458,7 @@ def parse_dev_data(language, features, s_data):
     lex_list = xmldoc.getElementsByTagName('lexelt') 
     for node in lex_list:
         lexelt = node.getAttribute('item')
-        print 'lexelt', lexelt
+        # print 'lexelt', lexelt
         s_i_data[lexelt] = []
         context_data[lexelt] = []
         instance_data[lexelt] = []
@@ -511,7 +544,10 @@ def train_classifiers(context_data, target_data):
 
 def test_classifier(language, feats, classifier, clf_data, context_dev, instance_dev):
     # data = parse_data('data/' + language + '-dev.xml')
-    filename = (language + '_' + ''.join(feats) + '.' + classifier)
+    if (classifier == 'answer'):
+        filename = (language + '.' + classifier)
+    else:
+        filename = (language + '_' + ''.join(feats) + '.' + classifier)
     print 'writing to', filename + '...'
     outfile = codecs.open(filename, encoding = 'utf-8', mode = 'w')
     for lexelt in context_dev:
@@ -523,6 +559,7 @@ def test_classifier(language, feats, classifier, clf_data, context_dev, instance
             vector = context_list[idx]
             sid = clf.predict(vector)
             outfile.write(replace_accented(lexelt + ' ' + instance_id + ' ' + sid + '\n'))
+    print 'success!'
     outfile.close()
 
 # ============================================================
@@ -626,43 +663,14 @@ def most_frequent_sense(language, sense_dict):
 if __name__ == '__main__':
     
     if len(sys.argv) < 2:
-        print 'usage: python baseline.py [language] [feature ids]'
+        print 'usage: python baseline.py [language]'
         sys.exit(0)
 
-    # sense_dict = build_dict(sys.argv[1])
-    # most_frequent_sense(sys.argv[1], sense_dict)
-    # find_synonyms(['cat','dog'])
-    # find_hnyms(['cat','dog'])
-    
     lang = sys.argv[1]
-    # k = int(sys.argv[2])
 
-    # print 'set k =', sys.argv[2] 
-
-    # Select list of features to use
-    ft = set([int(i) for i in (sys.argv[2:])])
-    print 'feature set:', ft
-
-    if 0 in ft:
-        print 'default: no preprocessing...'
-    if 1 in ft:
-        print 'will remove stops...'
-    if 2 in ft:
-        print 'will stem words...'
-    if 3 in ft: 
-        print 'will remove punctuation and make lowercase...'
-    if 4 in ft:
-        print 'will generate list of synonyms, hypernyms and hyponyms...'
-    if 5 in ft:
-        print 'will compute relevance score...'
-    if 6 in ft:
-        print 'will compute  pointwise mutual information...'
-    if 7 in ft:
-        print 'will compute chi square values...'
-
-    context_data, target_data, s_data = compute_context_vectors(lang, ft)
+    k, ft = choose_features(lang)
+    context_data, target_data, s_data = compute_context_vectors(lang, k, ft)
     knn_data, svc_data = train_classifiers(context_data, target_data)
-    context_dev, instance_dev = parse_dev_data(lang, ft, s_data)
-    test_classifier(lang, sys.argv[2:], 'knn', knn_data, context_dev, instance_dev)
-    test_classifier(lang, sys.argv[2:], 'svc', svc_data, context_dev, instance_dev)
+    context_dev, instance_dev = parse_dev_data(lang, k, ft, s_data)
+    test_classifier(lang, ft, 'answer', svc_data, context_dev, instance_dev)
     
