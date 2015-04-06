@@ -36,7 +36,7 @@ def choose_features(lang):
         k = 10
         ft = set([2, 3])
     
-    print 'set k to', k
+    print 'k =', k
     
     if 0 in ft:
         print 'default: no preprocessing...'
@@ -45,7 +45,10 @@ def choose_features(lang):
     if 2 in ft:
         print 'will stem words...'
     if 3 in ft: 
-        print 'will remove punctuation and make lowercase...'
+        if (lang == 'English'):
+            print 'will remove punctuation and make lowercase...'
+        else:
+            print 'will remove punctuation, capitalization, and numbers...'
     if 4 in ft:
         print 'will generate list of synonyms, hypernyms and hyponyms...'
     if 5 in ft:
@@ -66,9 +69,12 @@ def replace_accented(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
-''' Remove punctuation and make all words lowercase'''
-def remove_punc(tokens):
-    unpunctuated = [token.lower() for token in tokens if token not in string.punctuation]
+''' Remove punctuation and make all words lowercase; remove numbers too for Spanish/Catalan'''
+def remove_punc(tokens, lang):
+    if (lang == 'English'):
+        unpunctuated = [token.lower() for token in tokens if token not in string.punctuation]
+    else:
+        unpunctuated = [token.lower() for token in tokens if token not in string.punctuation and not token.isnumeric()]
     return unpunctuated
 
 ''' Remove stop words '''
@@ -93,34 +99,21 @@ def find_synonyms(tokens):
     synonyms = []
     sss = []
     for token in tokens:
-        # [ss.name() for ss in wn.synsets(token)]
-        # syn_list = ['.'.join(ss.name().split('.')[:-1]) for ss in wn.synsets(token)]
         syn_list = [ss.name().split('.')[0] for ss in wn.synsets(token) if '_' not in ss.name()]
         ss_list = [ss.name() for ss in wn.synsets(token) if '_' not in ss.name()]
         synonyms.extend(set(syn_list))
         sss.extend(set(ss_list))
-    # print 'synonyms', synonyms
     return synonyms, sss
 
 ''' Find hyponyms and hypernyms of tokens ''' 
 def find_hnyms(tokens):
     hnyms = []
     for token in tokens:
-        ss = wn.synset(token)
+        ss = wn.synsets(token)[0] # take only first meaning
         hypo = [h.name().split('.')[0] for h in ss.hyponyms() if '_' not in h.name()]
         hyper = [h.name().split('.')[0] for h in ss.hypernyms() if '_' not in h.name()] 
         hnyms.extend(hypo)
         hnyms.extend(hyper)
-        # for idx in xrange(len(wn.synsets(token))):
-        # ss = wn.synsets(token)[idx]
-        # ss = wn.synsets(token)[0] # take only the first meaning instead of all
-        # print 'ss', ss
-        # recursively travel up and down all hypos
-        # hypo = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hyponyms()) if '_' not in i.name()])
-        # hyper = set([i.name().split('.')[0] for i in ss.closure(lambda s:s.hypernyms()) if '_' not in i.name()])
-        # both = hypo.union(hyper)
-        # hnyms.append(both)
-    # print 'hyponyms and hypernyms', hnyms
     return hnyms
  
 # ============================================================
@@ -371,7 +364,7 @@ def compute_context_vectors(language, k, features):
                     if (2 in features):
                         tokens = stem(tokens)
                     if (3 in features):
-                        tokens = remove_punc(tokens)
+                        tokens = remove_punc(tokens, language)
                     if (4 in features):
                         tokens, sss = find_synonyms(tokens)
                         hnyms = find_hnyms(sss)
@@ -485,7 +478,7 @@ def parse_dev_data(language, k, features, s_data):
             if (2 in features):
                 tokens = stem(tokens)
             if (3 in features):
-                tokens = remove_punc(tokens)
+                tokens = remove_punc(tokens, language)
 
             # create s_i as a dictionary to keep track of words within k distance of
             # current head and counts for the number of time it appears in the window
@@ -667,6 +660,10 @@ if __name__ == '__main__':
         sys.exit(0)
 
     lang = sys.argv[1]
+
+    print find_synonyms(['dog'])
+    print find_hnyms(['dog'])
+    exit(1)
 
     k, ft = choose_features(lang)
     context_data, target_data, s_data = compute_context_vectors(lang, k, ft)
