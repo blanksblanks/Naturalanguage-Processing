@@ -15,11 +15,12 @@ from sklearn import svm
 from sklearn import neighbors
 
 # ============================================================
-# Constants
+# Experimental Values
 # ============================================================
 
-k = 10 # set context window (words preceding and following the head)
+k = 3 # set context window (words preceding and following the head)
 top = 100 # number of 'top' words for each sense by relevance score
+perc = 1.0 # variation of 'top' where the int is a percentage of instances a sense appears
 
 stemmer = PorterStemmer()
 
@@ -166,31 +167,33 @@ def compute_relevance(s_i_data, lexelt, features):
    # extract only top features for relevance scores
     if (5 in features):
         avg = total/len(relevance)
-        print ("avg:", avg)
+        # print ("avg:", avg)
         sorted_rel = sorted(relevance, key=lambda k:-relevance[k])
         # print sorted_rel
         for pair in sorted_rel:
             # print relevance[pair], pair
             sense = pair[0]
             word = pair[1]
-            '''if senses[sense] < int(sense_c[sense] * 0.5):
-                print senses[sense], '<', int(sense_c[sense] * 0.25)
-                most_rel.add(word)
-                senses[sense] += 1
-            if senses[sense] < top:
-                print 'ADDED', word
-                most_rel.add(word)
-                senses[sense] += 1'''
+            # keep only top 50% of vectors for each sense
+            # where sense_c stores the count for each sense
+            # and senses counts how many features of that sense have been added
+            # if senses[sense] < int(sense_c[sense] * perc):
+            #    most_rel.add(word)
+            #    senses[sense] += 1
+            # if senses[sense] < top:
+            #   print 'ADDED', word
+            #   most_rel.add(word)
+            #   senses[sense] += 1'''
             # set a threshold value
-            if (relevance[pair] > -2.0): # avg
+            if (relevance[pair] > avg): # avg or -2.0
                 most_rel.add(word)
-        print "vector length:", len(most_rel)
+        print "new vector length:", len(most_rel)
         return most_rel
 
     # extract only top features for pmi
     if (6 in features):
         avg = total/len(pmi)
-        print ("avg:", avg)
+        # print ("avg:", avg)
         sorted_pmi = sorted(pmi, key=lambda k:pmi[k])
         # print sorted_pmi
         for pair in sorted_pmi:
@@ -198,14 +201,17 @@ def compute_relevance(s_i_data, lexelt, features):
             # print pmi[pair], pair
             sense = pair[0]
             word = pair[1]
-            '''if senses[sense] < top:
-                # print 'ADDED', word
+            '''if senses[sense] < int(sense_c[sense] * perc):
                 most_pmi.add(word)
-                senses[sense] += 1'''
+                senses[sense] += 1
+            # if senses[sense] < top:
+                # print 'ADDED', word
+            #   most_pmi.add(word)
+            #   senses[sense] += 1'''
             # set a threshold value
             if (pmi[pair] > avg):
                 most_pmi.add(word)
-        print "vector length:", len(most_pmi)
+        print "new vector length:", len(most_pmi)
         return most_pmi
     
     # calculate chi square
@@ -221,21 +227,24 @@ def compute_relevance(s_i_data, lexelt, features):
             chi[pair] = ((obs - exp) * (obs - exp)) / exp
             total += chi[pair]
         avg = total/len(chi)
-        print ("avg:", avg)
+        # print ("avg:", avg)
         # keep only top features
         sorted_chi = sorted(chi, key=lambda k:chi[k])
         # print sorted_chi
         for pair in sorted_chi:
+            '''if senses[sense] < int(sense_c[sense] * perc):
+                most_chi.add(word)
+                senses[sense] += 1
             # print chi[pair], pair
-            '''sense = pair[0]
-            word = pair[1]
             if senses[sense] < top:
                 # print 'added', word
                 most_chi.add(word)'''
+            sense = pair[0]
+            word = pair[1]
             # set a threshold value
             if (chi[pair] > avg):
                 most_chi.add(word)
-        print "vector length:", len(most_chi)
+        print "new vector length:", len(most_chi)
         return most_chi
 
     # print 'relevance', relevance
@@ -259,7 +268,7 @@ If features include 7, compute chi square
 '''
 
 def compute_context_vectors(language, features):
-    print 'computing context vectors for training data...'
+    print 'computing context vectors from training data...'
 
     # define our training data and parse with minidom
     input_file = 'data/' + language + '-train.xml'
@@ -278,6 +287,9 @@ def compute_context_vectors(language, features):
     context_data = {}
     instance_data = {}
     target_data = {}
+
+    # sum up vector lengths to find out average
+    # total_vector_len = 0
 
     # for each lexelt in the xml file
     lex_list = xmldoc.getElementsByTagName('lexelt') 
@@ -334,7 +346,6 @@ def compute_context_vectors(language, features):
                     # print 'tokens', tokens
 
                     # s.extend(tokens)
-
                     # create s_i as a dictionary to keep track of words within k distance of
                     # current head and counts for the number of time it appears in the window
                     s_i = {}
@@ -358,11 +369,12 @@ def compute_context_vectors(language, features):
                     # append tuple to s_i_data[lexelt]
                     s_i_data[lexelt].append((instance_id, sense_id, s_i))
             
-            print "vector length", len(s)
 
             # print 's_data for', lexelt, s_data[lexelt]
             # print 's_i_data for', lexelt, s_i_data[lexelt]
             if (5 in features or 6 in features or 7 in features):
+                print "old vector length:", len(s)
+                # vector_len += len(s)
                 s = compute_relevance(s_i_data, lexelt, features)
 
             # transform feature set to list and  append to s_data[lexelt]
@@ -377,15 +389,15 @@ def compute_context_vectors(language, features):
                         sense = str(inst[1]) # cast to string to avoid unicode error for NumPY<1.7.0
                     except UnicodeEncodeError:
                         sense = str(replace_accented(inst[1]))
-                        print 'replaced accented', inst[1], sense
+                        # print 'replaced accented', inst[1], sense
                     s_i = inst[2]
                     vector = []
                     for idx in xrange(len(s)):
                         word = s[idx]
                         if word in s_i:
+                            vector.append(s_i[word]) # append the count from s_i dict
                             # change to binary feature set: either context word present (1) or not (0)
-                            vector.append(1)
-                            # vector.append(s_i[word]) # append the count from s_i dict
+                            # vector.append(1)
                         else:
                             vector.append(0)
                     context_data[lexelt].append(vector)
@@ -395,13 +407,14 @@ def compute_context_vectors(language, features):
                     # print 'sense', sense
                     # print 'vector', vector
 
+    # print 'average vector length:', total_vector_len/len(lex_list)
     # print 'target_data', target_data
     return context_data, target_data, s_data
 
     # reminder: context_vex[lexelt] = [] -> [(id, vector), (id, vector)]
 
 def parse_dev_data(language, features, s_data):
-    print 'computing context vectors for development data...'
+    print 'parsing dev data...'
 
     input_file = 'data/' + language + '-dev.xml'
     xmldoc = minidom.parse(input_file)
@@ -462,8 +475,8 @@ def parse_dev_data(language, features, s_data):
                 word = s[idx]
                 if word in s_i:
                     # change to binary feature set: either context word present (1) or not (0)
-                    vector.append(1)
-                    # vector.append(s_i[word]) # append the count from s_i dict
+                    # vector.append(1)
+                    vector.append(s_i[word]) # append the count from s_i dict
                 else:
                     vector.append(0)
             context_data[lexelt].append(vector)
@@ -622,30 +635,30 @@ if __name__ == '__main__':
     # find_hnyms(['cat','dog'])
     
     lang = sys.argv[1]
-    k = int(sys.argv[2])
+    # k = int(sys.argv[2])
 
-    print 'set k =', sys.argv[2] 
+    # print 'set k =', sys.argv[2] 
 
     # Select list of features to use
-    ft = set([int(i) for i in (sys.argv[3:])])
+    ft = set([int(i) for i in (sys.argv[2:])])
     print 'feature set:', ft
 
     if 0 in ft:
-        print 'default: no processing...'
+        print 'default: no preprocessing...'
     if 1 in ft:
-        print 'removing stops...'
+        print 'will remove stops...'
     if 2 in ft:
-        print 'stemming words...'
+        print 'will stem words...'
     if 3 in ft: 
-        print 'removing punctuation and making lowercase...'
+        print 'will remove punctuation and make lowercase...'
     if 4 in ft:
-        print 'generating list of synonyms, hypernyms and hyponyms...'
+        print 'will generate list of synonyms, hypernyms and hyponyms...'
     if 5 in ft:
-        print 'computing relevance score...'
+        print 'will compute relevance score...'
     if 6 in ft:
-        print 'computing pointwise mutual information...'
+        print 'will compute  pointwise mutual information...'
     if 7 in ft:
-        print 'computing chi square values...'
+        print 'will compute chi square values...'
 
     context_data, target_data, s_data = compute_context_vectors(lang, ft)
     knn_data, svc_data = train_classifiers(context_data, target_data)
