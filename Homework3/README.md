@@ -1,7 +1,9 @@
 Name: Nina Baculinao
+
 Uni: nb2406
 
 COMS 4705 Natural Language Processing
+
 Assignment 3 Report
 
 Note report.txt contains the exact same content as the markdown version README.md.
@@ -89,11 +91,8 @@ TLDR; Combo: unhelpful for English, worse than just stemming for Spanish, N/A fo
 | Features              | English           | Spanish          | Catalan          |
 |-----------------------|-------------------|------------------|------------------|
 | 0_No preprocessing    | 0.566 / 0.620     | 0.700 / 0.783    | 0.703 / 0.824    |
-|-----------------------|-------------------|------------------|------------------|
 | 3x_Remove punctuation | 0.547 / 0.618     | 0.699 / 0.789    | 0.708 / 0.820    |
-|-----------------------|-------------------|------------------|------------------|
 | 3_Remove punc & caps  | 0.558 / 0.621 +   | 0.698 / 0.790    | 0.714 / 0.824 +  |
-|---------------------------------------------------------------------------------|
 | 123_Combination       | 0.540 / 0.620     | 0.668 / 0.795 +  | N/A              |
 
 [+] in the table indicates this was the best results for this part so far
