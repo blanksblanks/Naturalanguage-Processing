@@ -54,12 +54,10 @@ CATALAN:
 
 To sum it up in a table:
 
-----------------------------------------------------------------------------------
-|                         | English          | Spanish       | Catalan           |
+| Features                | English          | Spanish       | Catalan           |
 |-------------------------|------------------|---------------|-------------------|
 | Baseline                | 0.535            | 0.684         | 0.678             |
 | Context vectors only    | 0.566 / 0.620    | 0.700 / 0.783 | 0.703 / 0.824     |
-----------------------------------------------------------------------------------
 
 In the case of all languages, the Linear SVC Support Vector Machine performed better than KNN (0.620 vs. 0.566 for English, 0.783 vs. 0.700 for Spanish, and 0.824 vs. 0.703 for Catalan). All the classifiers attempted to classify 100% of their respective language-dev.xml data. Additionally, all the precision scores of the context vectors approach out-perform the baseline of picking just the most frequently occurring sense, even the KNN (0.566 English KNN > 0.535 baseline), and the simprovement is seen across Spanish and Catalan.
 
@@ -67,14 +65,12 @@ In the case of all languages, the Linear SVC Support Vector Machine performed be
 
 a) Remove stop words, do stemming, etc. I also tried removing punctuation and capitalization in this preprocessing step to extract better features
 
-------------------------------------------------------------------------------------
-|                           | English          | Spanish       | Catalan           |
+| Features                  | English          | Spanish       | Catalan           |
 |---------------------------|------------------|---------------|-------------------|
 | 0_No preprocessing        | 0.566 / 0.620    | 0.700 / 0.783 | 0.703 / 0.824     |
 | 1_Remove stop words       | 0.525 / 0.615    | 0.682 / 0.787 | - unavailable     |
 | 2_Stem tokens             | 0.564 / 0.623    | 0.701 / 0.795 | 0.705 / 0.824     |
 | 12_Combination            | 0.531 / 0.620    | 0.690 / 0.791 | - unavailable (1) |
-------------------------------------------------------------------------------------
 
 I performed removing stop words and stemming tokens separately, and then together. Above is a table that sums up the effects of each type of preprocessing. The two numbers in each column represent KNN / SVC. For the most part, I look at SVC classifier values because they have better performance, but I will discuss KNN values once in a while.
 
@@ -90,8 +86,7 @@ COMBINATION: For English, the mild increase in performance by stemming tokens is
 
 TLDR; Combo: unhelpful for English, worse than just stemming for Spanish, N/A for Catalan
 
------------------------------------------------------------------------------------
-|                       | English           | Spanish          | Catalan          |
+| Features              | English           | Spanish          | Catalan          |
 -----------------------------------------------------------------------------------
 | 0_No preprocessing    | 0.566 / 0.620     | 0.700 / 0.783    | 0.703 / 0.824    |
 -----------------------------------------------------------------------------------
@@ -100,22 +95,19 @@ TLDR; Combo: unhelpful for English, worse than just stemming for Spanish, N/A fo
 | 3_Remove punc & caps  | 0.558 / 0.621 +   | 0.698 / 0.790    | 0.714 / 0.824 +  |
 -----------------------------------------------------------------------------------
 | 123_Combination       | 0.540 / 0.620     | 0.668 / 0.795 +  | N/A              |
------------------------------------------------------------------------------------
 
-+ in the table indicates this was the best results for this part so far
+[+] in the table indicates this was the best results for this part so far
 
 REMOVE PUNCTUATION AND CAPITALIZATION: Removing punctuation produced worse results for English and Catalan, but once we removed punctuation and capitalization, this produced slightly better results for English, Spanish and the same result for Catalan, so I considered this a good preprocessing step. For Spanish, the combination of removing stop words, stemming words and was the best combination for it.
 To sum it up: English benefited from removing punctuation and capitalization, Spanish benefited from removing stop words, stemming words and removing punctuation and capitalization, Catalan stayed the same after removing puncutation and capitalization but since removing them created shorter feature vectors I considered this a benefit.
 
 b) Add more features by obtaining the synonyms, hyponyms and hypernyms of a word in WordNet.
 
-------------------------------------------------------------------------------------
-|                           | English          | Spanish        | Catalan          |
+| Features                  | English          | Spanish        | Catalan          |
 ------------------------------------------------------------------------------------
 | 0_No preprocessing        | 0.566 / 0.620    | 0.700 / 0.783  | 0.703 / 0.824    |
 ------------------------------------------------------------------------------------
 | 4_Syn + hyper + hyponyms  | 0.497 / 0.598    | - unavailable  | - unavailable    |
-------------------------------------------------------------------------------------
 
 I used WordNet to find all possible synonyms, hyponyms and hypernyms to the feature set. For a simplified example, if we have the token ‘dog', then synonyms according to WordNet's synsets could be [u'andiron', u'frump', u'pawl', u'frank', u'dog', u'chase', u'cad']. Hyponyms and hypernyms could be [u'basenji', u'corgi', u'cur', u'dalmatian', u'griffon', u'lapdog', u'leonberg', u'newfoundland', u'pooch', u'poodle', u'pug', u'puppy', u'spitz', u'canine']. I only counted the words that did not have underscores (indicating that this word was actually made of two tokens). Once we had that list of synonyms, hypernyms and hyponyms, we added it to the vector. The same preprocessing was required for dev data. The final results were, as was somewhat expected, worse (0.620 -> 0.598). Not only did we add preprocessing time, we also generated these incredibly long and sparse vectors.
 
@@ -125,7 +117,6 @@ Note: this step was only undertaken for English, because Open Multilingual WordN
 
 c) Compute relevance scores
 
----------------------------------------------------------------------------
 | Threshold value         | Relevance     | PMI           | Chi           |
 ---------------------------------------------------------------------------
 | percent = 0.25          | 0.462 / 0.536 | -             | -             |
@@ -157,8 +148,7 @@ I played with many threshold values, but finally had to conclude that this step 
 
 d) Trying pointwise mutual information and chi-square for extracting features
 
--------------------------------------------------------------------------------------
-|                         | English          | Spanish          | Catalan           |
+| Features                | English          | Spanish          | Catalan           |
 -------------------------------------------------------------------------------------
 | 0_No preprocessing      | 0.566 / 0.620     | 0.700 / 0.783    | 0.703 / 0.824    |
 -------------------------------------------------------------------------------------
@@ -167,7 +157,6 @@ d) Trying pointwise mutual information and chi-square for extracting features
 | 6_Pointwise mutual info | 0.539 / 0.588     | 0.687 / 0.746    | 0.682 / 0.773    |
 -------------------------------------------------------------------------------------
 | 7_Chi square            | 0.472 / 0.538     | 0.691 / 0.711    | 0.682 / 0.730    |
--------------------------------------------------------------------------------------
 
 POINTWISE MUTUAL INFORMATION: I calculated the PMI as described in class as log p(s,c) / p(s)p(c) = log p(s|c) / p(s) where in this case s is the sense and and c is the word in the context window that appears with it.
 
@@ -177,7 +166,6 @@ For all of these, I used the average of scores across a lexelt for all senses as
 
 5. Adjust the window size k
 
-------------------------------------------------------------
 | k  | English         | Spanish         | Catalan         |
 ------------------------------------------------------------
 | 2  | 0.582 / 0.628   | 0.741 / 0.782   | 0.757 / 0.820   |
@@ -199,15 +187,13 @@ For all of these, I used the average of scores across a lexelt for all senses as
 | 10 | 0.566 / 0.620   | 0.700 / 0.783   | 0.703 / 0.824 + |
 ------------------------------------------------------------
 | 12 | 0.567 / 0.614   | 0.689 / 0.774   | 0.717 / 0.821   |
-------------------------------------------------------------
 
-+ indicates the best performers in this part
+[+] indicates the best performers in this part
 
 WINDOW SIZE: Surprisingly, this turned out to have the effect one would have hoped for with the relevance scores/chi square/PMI methods. It shortened the vectors for each lexelt and improved performance. Interestingly different languages, the range of relevant nearby words containing important linguistic information for disambiguation varies. For English, k=3 increased performance the best (0.640 precision compared to 0.620 for k=10). For Spanish, k=6 (0.793 compared to 0.783). And for Catalan, the original window size k=10 (0.824). 
 
 6. Find the best combination of the feature extracting approaches and use the classifier that gives better results
 
---------------------------------------------------------
 | Key | Feature                                        |
 --------------------------------------------------------
 | 1   | Remove stop words                              |
@@ -217,9 +203,7 @@ WINDOW SIZE: Surprisingly, this turned out to have the effect one would have hop
 | 3   | Remove punctuation and capitalization          |
 --------------------------------------------------------
 | 3#  | Remove punctuation, capitalization and numbers |
---------------------------------------------------------
 
-----------------------------------------------------------------------
 | Ft  | k  | English           | Spanish          | Catalan          |
 ----------------------------------------------------------------------
 | 3   | 3  | 0.589 / 0.642 +++ | 0.720 / 0.795    | 0.756 / 0.824    |
@@ -239,9 +223,8 @@ WINDOW SIZE: Surprisingly, this turned out to have the effect one would have hop
 | 23# | 6  |   -   /   -       |  -   / 0.813 +++ |  -   /   -       |
 ----------------------------------------------------------------------
 | 23# | 10 |   -   /   -       |  -   /   -       |  -   / 0.831 +++ |
-----------------------------------------------------------------------
 
-+++  indicates the best performers overall in this last step
+[+++]  indicates the best performers overall in this last step
 
 I experimented with the better results from part 4a) and my findings with different k-values. I didn't use information for synsets, relevance scores, PMI or chi square because they my experiences with them had only detracted from the original performance. While k for Spanish and Catalan are different, they undergo the same preprocessing procedures, which is interesting and perhaps due to their closer linguistic similarity with each other compared to with English. It turns out the best results for this training and development data are:
 
