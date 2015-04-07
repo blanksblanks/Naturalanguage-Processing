@@ -1,0 +1,131 @@
+To get words in synset...
+
+>>> print [ss.name().split('.')[0] for ss in wn.synsets('dog')]
+[u'dog', u'frump', u'dog', u'cad', u'frank', u'pawl', u'andiron', u'chase']
+
+
+To get hyponyms/hypernyms...
+
+fruit = wn.synsets('fruit')[i]
+direct = fruit.hyponyms()
+hypofruit = set([i for i in fruit.closure(lambda s:s.hyponyms())])
+
+
+>>> fruit = 'fruit'
+>>> wn.synsets(fruit)
+[Synset('fruit.n.01'), Synset('yield.n.03'), Synset('fruit.n.03'), Synset('fruit.v.01'), Synset('fruit.v.02')]
+>>> wn.synsets(fruit)[0].definition()
+u'the ripened reproductive body of a seed plant'
+>>> fruit = wn.synsets(fruit)[0]
+>>> apple = wn.synsets('apple')[0].definition()
+>>> apple = wn.synsets('apple')[0]
+>>> fruit.hyponyms()
+[Synset('accessory_fruit.n.01'), Synset('achene.n.01'), Synset('acorn.n.01'), Synset('aggregate_fruit.n.01'), Synset('berry.n.02'), Synset('buckthorn_berry.n.01'), Synset('buffalo_nut.n.01'), Synset('chokecherry.n.01'), Synset('cubeb.n.01'), Synset('drupe.n.01'), Synset('ear.n.05'), Synset('edible_fruit.n.01'), Synset('fruitlet.n.01'), Synset('gourd.n.02'), Synset('hagberry.n.01'), Synset('hip.n.05'), Synset('juniper_berry.n.01'), Synset('marasca.n.01'), Synset('may_apple.n.01'), Synset('olive.n.01'), Synset('pod.n.02'), Synset('pome.n.01'), Synset('prairie_gourd.n.01'), Synset('pyxidium.n.01'), Synset('quandong.n.02'), Synset('rowanberry.n.01'), Synset('schizocarp.n.01'), Synset('seed.n.01'), Synset('wild_cherry.n.01')]
+>>> apple in fruit.hyponyms()
+False
+>>> hypofruits = set([i for i in fruit.closure(lambda s:s.hyponyms())])
+>>> apple in hypofruits
+True
+>>> hyperapple = set([i for i in apple.closure(lambda s:s.hypernyms())])
+>>> fruit in hyperapple
+True
+>>> hypoapple = set([i for i in apple.closure(lambda s:s.hyponyms())])
+>>> fruit in hypoapple
+False
+>>> hyperfruit = set([i for i in fruit.closure(lambda s:s.hypernyms())])
+>>> apple in hyperfruit
+False
+>>> 
+
+
+>>> for ss in wn.synsets('cat'):
+...     print ss.name().split('.')[0]
+... 
+cat
+guy
+cat
+kat
+cat-o'-nine-tails
+caterpillar
+big_cat
+computerized_tomography
+cat
+vomit
+
+
+
+
+
+
+>>> for i in xrange(len(wn.synsets('cat'))):
+...     print wn.synsets('cat')[i]
+...     print wn.synsets('cat')[i].definition()
+...     print wn.synsets('cat')[i].hyponyms()
+...     print wn.synsets('cat')[i].hypernyms()
+...     print set([k for k in wn.synsets('cat')[i].closure(lambda s:s.hyponyms())])
+...     print set([k for k in wn.synsets('cat')[i].closure(lambda s:s.hypernyms())])
+... 
+Synset('cat.n.01')
+feline mammal usually having thick soft fur and no ability to roar: domestic cats; wildcats
+[Synset('domestic_cat.n.01'), Synset('wildcat.n.03')]
+[Synset('feline.n.01')]
+set([Synset('leopard_cat.n.01'), Synset('maltese.n.03'), Synset('cougar.n.01'), Synset('egyptian_cat.n.01'), Synset('jaguarundi.n.01'), Synset('tom.n.02'), Synset('gib.n.02'), Synset('burmese_cat.n.01'), Synset('tabby.n.02'), Synset('tiger_cat.n.01'), Synset('tiger_cat.n.02'), Synset('tabby.n.01'), Synset('caracal.n.01'), Synset('wildcat.n.03'), Synset('lynx.n.02'), Synset('spotted_lynx.n.01'), Synset('common_lynx.n.01'), Synset('european_wildcat.n.01'), Synset('serval.n.01'), Synset('bobcat.n.01'), Synset('kaffir_cat.n.01'), Synset('sand_cat.n.01'), Synset('jungle_cat.n.01'), Synset('manx.n.02'), Synset('ocelot.n.01'), Synset('abyssinian.n.01'), Synset('angora.n.04'), Synset('manul.n.01'), Synset('alley_cat.n.01'), Synset('canada_lynx.n.01'), Synset('tortoiseshell.n.03'), Synset('domestic_cat.n.01'), Synset('kitty.n.04'), Synset('persian_cat.n.01'), Synset('blue_point_siamese.n.01'), Synset('siamese_cat.n.01'), Synset('margay.n.01'), Synset('mouser.n.01')])
+set([Synset('chordate.n.01'), Synset('living_thing.n.01'), Synset('physical_entity.n.01'), Synset('animal.n.01'), Synset('mammal.n.01'), Synset('object.n.01'), Synset('vertebrate.n.01'), Synset('entity.n.01'), Synset('carnivore.n.01'), Synset('feline.n.01'), Synset('placental.n.01'), Synset('organism.n.01'), Synset('whole.n.02')])
+Synset('guy.n.01')
+an informal term for a youth or man
+[Synset('sod.n.04')]
+[Synset('man.n.01')]
+set([Synset('sod.n.04')])
+set([Synset('living_thing.n.01'), Synset('physical_entity.n.01'), Synset('causal_agent.n.01'), Synset('male.n.02'), Synset('adult.n.01'), Synset('entity.n.01'), Synset('person.n.01'), Synset('object.n.01'), Synset('man.n.01'), Synset('organism.n.01'), Synset('whole.n.02')])
+Synset('cat.n.03')
+a spiteful woman gossip
+[]
+[Synset('gossip.n.03'), Synset('woman.n.01')]
+set([])
+set([Synset('woman.n.01'), Synset('living_thing.n.01'), Synset('physical_entity.n.01'), Synset('person.n.01'), Synset('adult.n.01'), Synset('gossip.n.03'), Synset('causal_agent.n.01'), Synset('communicator.n.01'), Synset('object.n.01'), Synset('organism.n.01'), Synset('entity.n.01'), Synset('whole.n.02'), Synset('female.n.02')])
+Synset('kat.n.01')
+the leaves of the shrub Catha edulis which are chewed like tobacco or used to make tea; has the effect of a euphoric stimulant
+[]
+[Synset('stimulant.n.02')]
+set([])
+set([Synset('physical_entity.n.01'), Synset('entity.n.01'), Synset('causal_agent.n.01'), Synset('matter.n.03'), Synset('agent.n.03'), Synset('stimulant.n.02'), Synset('drug.n.01'), Synset('substance.n.07')])
+Synset('cat-o'-nine-tails.n.01')
+a whip with nine knotted cords
+[]
+[Synset('whip.n.01')]
+set([])
+set([Synset('instrument.n.01'), Synset('physical_entity.n.01'), Synset('whip.n.01'), Synset('artifact.n.01'), Synset('entity.n.01'), Synset('device.n.01'), Synset('object.n.01'), Synset('instrumentality.n.03'), Synset('whole.n.02')])
+Synset('caterpillar.n.02')
+a large tracked vehicle that is propelled by two endless metal belts; frequently used for moving earth in construction and farm work
+[]
+[Synset('tracked_vehicle.n.01')]
+set([])
+set([Synset('tracked_vehicle.n.01'), Synset('physical_entity.n.01'), Synset('artifact.n.01'), Synset('self-propelled_vehicle.n.01'), Synset('vehicle.n.01'), Synset('object.n.01'), Synset('instrumentality.n.03'), Synset('container.n.01'), Synset('conveyance.n.03'), Synset('wheeled_vehicle.n.01'), Synset('entity.n.01'), Synset('whole.n.02')])
+Synset('big_cat.n.01')
+any of several large cats typically able to roar and living in the wild
+[Synset('cheetah.n.01'), Synset('jaguar.n.01'), Synset('leopard.n.02'), Synset('liger.n.01'), Synset('lion.n.01'), Synset('saber-toothed_tiger.n.01'), Synset('snow_leopard.n.01'), Synset('tiger.n.02'), Synset('tiglon.n.01')]
+[Synset('feline.n.01')]
+set([Synset('tiglon.n.01'), Synset('liger.n.01'), Synset('saber-toothed_tiger.n.01'), Synset('leopardess.n.01'), Synset('jaguar.n.01'), Synset('tiger_cub.n.01'), Synset('tiger.n.02'), Synset('smiledon_californicus.n.01'), Synset('lioness.n.01'), Synset('leopard.n.02'), Synset('cheetah.n.01'), Synset('lionet.n.01'), Synset('lion.n.01'), Synset('lion_cub.n.01'), Synset('tigress.n.01'), Synset('snow_leopard.n.01'), Synset('panther.n.02'), Synset('false_saber-toothed_tiger.n.01'), Synset('bengal_tiger.n.01')])
+set([Synset('chordate.n.01'), Synset('living_thing.n.01'), Synset('physical_entity.n.01'), Synset('animal.n.01'), Synset('mammal.n.01'), Synset('object.n.01'), Synset('vertebrate.n.01'), Synset('entity.n.01'), Synset('carnivore.n.01'), Synset('feline.n.01'), Synset('placental.n.01'), Synset('organism.n.01'), Synset('whole.n.02')])
+Synset('computerized_tomography.n.01')
+a method of examining body organs by scanning them with X rays and using a computer to construct a series of cross-sectional scans along a single axis
+[]
+[Synset('x-raying.n.01')]
+set([])
+set([Synset('event.n.01'), Synset('pictorial_representation.n.01'), Synset('representation.n.10'), Synset('abstraction.n.06'), Synset('x-raying.n.01'), Synset('activity.n.01'), Synset('imaging.n.02'), Synset('psychological_feature.n.01'), Synset('entity.n.01'), Synset('act.n.02')])
+Synset('cat.v.01')
+beat with a cat-o'-nine-tails
+[]
+[Synset('flog.v.01')]
+set([])
+set([Synset('flog.v.01'), Synset('beat.v.02')])
+Synset('vomit.v.01')
+eject the contents of the stomach through the mouth
+[]
+[Synset('excrete.v.01')]
+set([])
+set([Synset('exhaust.v.05'), Synset('excrete.v.01')])
+
+
+
+
