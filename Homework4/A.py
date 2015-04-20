@@ -6,12 +6,11 @@ from nltk.align.ibm2 import IBMModel2
 # Initialize IBM Model 1 and return the model.
 def create_ibm1(aligned_sents):
     ibm1 = IBMModel1(aligned_sents[:10], 20)
-    # ibm1 = IBMModel1(aligned_sents, 10)
     return ibm1
 
 # Initialize IBM Model 2 and return the model.
 def create_ibm2(aligned_sents):
-    ibm2 = IBMModel2(aligned_sents,10)
+    ibm2 = IBMModel2(aligned_sents[:10],20)
     return ibm2
 
 # Compute the average AER for the first n sentences
@@ -27,17 +26,11 @@ def save_model_output(aligned_sents, model, file_name):
     target = open(file_name,'w')
     for i in xrange(20):
         aligned_sent = model.align(aligned_sents[i])
-        # print(u' '.join(aligned_sent.words))
-        # print(aligned_sent.mots, type(aligned_sent.mots))
-        # print(aligned_sent.alignment, type(aligned_sent.alignment))
         words = (u' '.join(aligned_sent.words).encode('utf8'))
         mots = (u' '.join(aligned_sent.mots).encode('utf8'))
         alignment = (u' '.join(u'%s-%s' %(tup[0], tup[1]) for tup in aligned_sent.alignment).encode('utf8'))
-        target.write(words + '\n')
-        target.write(mots + '\n')
-        target.write(alignment + '\n')
-        target.write('\n')
-        # target.write(u'\n'.encode('utf8'))
+        target.write(words + '\n' +  mots + '\n' + alignment + '\n\n')
+        # print(words + '\n' +  mots + '\n' + alignment + '\n')
     target.close()
 
 # Where aligned_sents = comtrans.aligned_sents()[:350]
