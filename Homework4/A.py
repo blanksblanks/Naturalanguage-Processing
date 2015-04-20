@@ -16,8 +16,13 @@ def create_ibm2(aligned_sents):
 # Compute the average AER for the first n sentences
 # in aligned_sents using model. Return the average AER.
 def compute_avg_aer(aligned_sents, model, n):
-    # for i in xrange(n):
-    return 0
+    total = 0
+    for i in xrange(n):
+        aligned_sent = model.align(aligned_sents[i])
+        aer = aligned_sent.alignment_error_rate(aligned_sents[i])
+        total += aer
+    avg = total / n
+    return avg
 
 # Computes the alignments for the first 20 sentences in
 # aligned_sents and saves the sentences and their alignments
@@ -37,17 +42,17 @@ def save_model_output(aligned_sents, model, file_name):
 def main(aligned_sents):
     ibm1 = create_ibm1(aligned_sents)
     save_model_output(aligned_sents, ibm1, "ibm1.txt")
-    # avg_aer = compute_avg_aer(aligned_sents, ibm1, 50)
+    avg_aer = compute_avg_aer(aligned_sents, ibm1, 50)
 
     print ('IBM Model 1')
     print ('---------------------------')
-    # print('Average AER: {0:.3f}\n'.format(avg_aer))
+    print('Average AER: {0:.3f}\n'.format(avg_aer))
 
     ibm2 = create_ibm2(aligned_sents)
     save_model_output(aligned_sents, ibm2, "ibm2.txt")
-    # avg_aer = compute_avg_aer(aligned_sents, ibm2, 50)
+    avg_aer = compute_avg_aer(aligned_sents, ibm2, 50)
     
     print ('IBM Model 2')
     print ('---------------------------')
-    # print('Average AER: {0:.3f}\n'.format(avg_aer))
+    print('Average AER: {0:.3f}\n'.format(avg_aer))
 
