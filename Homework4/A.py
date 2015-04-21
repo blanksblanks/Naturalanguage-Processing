@@ -3,24 +3,23 @@ from nltk.corpus import comtrans
 from nltk.align.ibm1 import IBMModel1
 from nltk.align.ibm2 import IBMModel2
 
+"""
+    # A1: Init IBMModel1 using 10 iterations of EM for first 350 sentences in corpus
+    # A2: Init IBMModel2 using 10 iterations of EM for first 350 sentences in corpus
+    # A3: For each of the first 50 sentence pairs in the corpus, compute the AER
+    # A4: Experiment with num_iter for EM algorithm
+"""
+
 # Initialize IBM Model 1 and return the model.
 def create_ibm1(aligned_sents):
-    # A1: Init using 10 iterations of EM for first 350 sentences in corpus
-    ibm1 = IBMModel1(aligned_sents, 10)
-
-    # A4: Init using 20 iterations of EM for first 10 sentences in corpus
+    ibm1 = IBMModel1(aligned_sents, 25)
     # ibm1 = IBMModel1(aligned_sents[:10], 20)
-
     return ibm1
 
 # Initialize IBM Model 2 and return the model.
 def create_ibm2(aligned_sents):
-    # A2: Init using 10 iterations of EM for first 350 sentences in corpus
-    ibm2 = IBMModel2(aligned_sents, 10)
-
-    # A4: Init using 20 iterations of EM for first 10 sentences in corpus
+    ibm2 = IBMModel2(aligned_sents, 25)
     # ibm2 = IBMModel2(aligned_sents[:10],20)
-
     return ibm2
 
 # Compute the average AER for the first n sentences
@@ -44,18 +43,17 @@ def compare_avg_aer(aligned_sents, ibm1, ibm2, n):
         e1 = s1.alignment_error_rate(ref)
         e2 = s2.alignment_error_rate(ref)
         if (e1 == e2):
-            print i, ': same aer (%f)' %(e1)
-        elif (e2 > e1):
-            print i, ': ibm2 (%f) outperformed ibm1 (%f)' %(e2,e1)
-        else: # e1 > e2
-            print i, ': ibm1 (%f) outperformed ibm2 (%f)' %(e1,e2)
+            print '\n', i+1, ': same aer (%f)' %(e1)
+        elif (e2 < e1):
+            print '\n', i+1, ': ibm2 (%f) outperformed ibm1 (%f)' %(e2,e1)
+        else: # e1 < e2
+            print '\n', i+1, ': ibm1 (%f) outperformed ibm2 (%f)' %(e1,e2)
         if (e1 != e2):
             print sentencify(ref.words)
             print sentencify(ref.mots)
             print '(refr)', ref.alignment
             print '(ibm1)', s1.alignment
             print '(ibm2)', s2.alignment
-            print '\n'
 
 # Helper method to convert list of words or list of tuples to Unicode string
 def sentencify(lst, mode=1):
@@ -96,4 +94,4 @@ def main(aligned_sents):
     print ('---------------------------')
     print('Average AER: {0:.3f}\n'.format(avg_aer))
 
-    compare_avg_aer(aligned_sents, ibm1, ibm2, 50)
+    # compare_avg_aer(aligned_sents, ibm1, ibm2, 50)
