@@ -16,6 +16,7 @@ class BerkeleyAligner():
     def train(self, aligned_sents, num_iters):
         t = {}
         q = {}
+
         ger_vocab = set() # e_set: source in unidirectional model
         eng_vocab = set() # f_set: target in unidirectional model
         for aligned_sent in aligned_sents:
@@ -24,27 +25,44 @@ class BerkeleyAligner():
         ger_vocab.add(None) # add NULL values to e_set
         # print "Eng", en_vocab
         # print "Ger", ge_vocab
-        init_prob = 1/len(ger_vocab)
-        count_ef = {e:{} for e in ger_vocab}
-        # print count_ef
-        # total_f = {}
+        # init_prob = 1/len(ger_vocab)
+        
+        # Initialize the translation parameters to be the uniform distribution over
+        # all possible words thats appear in a target sentence of a sentence
+        # containing the source word
+        c_fe = {e:{} for e in ger_vocab}
+        # print c_fe
         for aligned_sent in aligned_sents:
             ger_sent = aligned_sent.words
             eng_sent = [None] + aligned_sent.mots # this works, tested in IDLE
             for e in ger_sent:
                 for f in eng_sent:
-                    if (f,e) in count_ef[e]: # where f given e
-                        count_ef[e][(f,e)] += 1
+                    if (f,e) in c_fe[e]: # where f given e
+                        c_fe[e][(f,e)] += 1
                     else:
-                        count_ef[e][(f,e)] = 1 # initialize count
-        # print count_ef
-        for e in count_ef:
-            dic =  count_ef[e]
-            for pair in dic:
+                        c_fe[e][(f,e)] = 1 # initialize count
+        # print c_fe
+        for e in c_fe:
+            dic =  c_fe[e]
+            for pair in dic: # where pair = (f,e)
                 t[pair] = float(dic[pair]) / len(dic)
-            #for key, value in count_ef[e].items:
-            #    t[key] = value / len(count_ef[e])
-        print t
+        # print t
+
+        # Initialize the alignment parameters to be the uniform distribution over the
+        # length of the source sentence
+        for aligned_sent in aligned_sents:
+            ger_sent = aligned_sent.words
+            eng_sent = [None] + aligned_sent.mots
+            l = len(ger_sent)
+            m = len(eng_sent)
+            for i in xrange(l):
+                delta_d = 0
+                for j in xrange(m): # right?
+                    if (j,i,l,m) not in q:
+                        q[(j,i,l,m)] = 1/float(l+1)
+        print q
+
+
 
 
 
