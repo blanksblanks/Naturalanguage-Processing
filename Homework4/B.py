@@ -66,37 +66,75 @@ class BerkeleyAligner():
 
         # Initialize the alignment parameters to be the uniform distribution over the
         # length of the source sentence
-        for aligned_sent in aligned_sents:
+        # Can just take care of it in the loop below
+        '''for aligned_sent in aligned_sents:
             ger_sent = aligned_sent.words
             eng_sent = [None] + aligned_sent.mots
             l = len(ger_sent)
             m = len(eng_sent)
             for i in xrange(l):
-                delta_d = 0
+                # delta_d = 0
                 for j in xrange(m): # right?
                     if (j,i,l,m) not in q:
                         q[(j,i,l,m)] = 1/float(l+1)
         # print q
+        '''
 
         # total_e = defaultdict(lambda: 0.0)
         # t_ef = t
 
         for i in xrange(num_iters):
             print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIteration', i+1, '...'
-            count = {tup:0 for tup in t.keys()}
-            count_e = {e:0 for e in ger_vocab}
+
+            # Update t
+            # count = {tup:0 for tup in t.keys()}
+            # count_e = {e:0 for e in ger_vocab}
+            # Update q
+            c_fe = {tup:0 for tup in t.keys()}
+            c_e = {e:0 for e in ger_vocab}
+            c_ilm = defaultdict(int)
+            c_jilm = defaultdict(int)
+
             for aligned_sent in aligned_sents:
                 ger_sent = aligned_sent.words
                 eng_sent = [None] + aligned_sent.mots
-                for f in eng_sent:
-                    sum_e = 0
-                    for e in ger_sent:
-                        sum_e += t[(f,e)]
-                    for e in ger_sent:
-                        count[(f,e)] += (t[(f,e)] / float(sum_e))
-                        count_e[e] += (t[(f,e)] / float(sum_e))
-            for (f,e) in count.keys():
-                t[(f,e)] = float(count[(f,e)] / float(count_e[e]))
+                # Update t
+                # for f in eng_sent:
+                #    sum_e = 0
+                #    for e in ger_sent:
+                #        sum_e += t[(f,e)]
+                #    for e in ger_sent:
+                #        count[(f,e)] += (t[(f,e)] / float(sum_e))
+                #        count_e[e] += (t[(f,e)] / float(sum_e))
+                # Update q
+                l = len(ger_sent)
+                m = len(eng_sent)
+                for i in xrange(m):
+                   # Calculate delta denominator for q(j|i,l,m)
+                   f = eng_sent[i]
+                   delta_d = 0
+                   for j in xrange(l):
+                       e = ger_sent[j]
+                       # We can just take care of initialization of q here!
+                       if (j,i,l,m) not in q:
+                           q[(j,i,l,m)] = 1/float(l+1)
+                       delta_d += q[(j,i,l,m)] * t[(f,e)]
+                   for j in xrange(l):
+                       e = ger_sent[j]
+                       # Update q rule
+                       delta = (q[(j,i,l,m)] * t[(f,e)])/float(delta_d)
+                       c_fe[(f,e)] += delta
+                       c_e[e] += delta
+                       c_ilm[(i,l,m)] += delta
+                       c_jilm[(j,i,l,m)] += delta
+            # Update t
+            for (f,e) in c_fe.keys():
+                t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
+            for (j,i,l,m) in c_jilm.keys():
+                q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
+
+            
+
         # print t
         self.t = t
         self.q = q
