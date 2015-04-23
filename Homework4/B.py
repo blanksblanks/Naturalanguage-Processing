@@ -30,17 +30,24 @@ class BerkeleyAligner():
     # Implement the EM algorithm. num_iters is the number of iterations. Returns the 
     # translation and distortion parameters as a tuple.
     def train(self, aligned_sents, num_iters):
+        # ger -> eng
         t = {}
         q = {}
+        # eng -> ger
+        t2 = {}
+        q2 = {}
 
         ger_vocab = set() # e_set: source in unidirectional model
         eng_vocab = set() # f_set: target in unidirectional model
         for aligned_sent in aligned_sents:
             ger_vocab.update(aligned_sent.words) 
             eng_vocab.update(aligned_sent.mots)
-        eng_vocab.add(None) # add NULL values to e_set
-        # print "Eng", en_vocab
-        # print "Ger", ge_vocab
+        # Create vocab for flipped model
+        eng_vocab2 = eng_vocab
+        ger_vocab2 = ger_vocab
+        # Add None to target languages
+        eng_vocab.add(None)
+        ger_vocab2.add(None)
         
         # Usually t(f|e) is given by 1 over set of foreign words
         # init_prob = 1/len(ger_vocab)
@@ -48,25 +55,44 @@ class BerkeleyAligner():
         # Initialize the translation parameters to be the uniform distribution over
         # all possible words thats appear in a target sentence of a sentence
         # containing the source word
-        c_fe = {e:{} for e in ger_vocab}
+        count_fe = {e:{} for e in ger_vocab}
         # print c_fe
         for aligned_sent in aligned_sents:
             ger_sent = aligned_sent.words
             eng_sent = [None] + aligned_sent.mots # this works, tested in IDLE
             for e in ger_sent:
                 for f in eng_sent:
-                    if (f,e) in c_fe[e]: # where f given e
-                        c_fe[e][(f,e)] += 1
+                    if (f,e) in count_fe[e]: # where f given e
+                        count_fe[e][(f,e)] += 1
                     else:
-                        c_fe[e][(f,e)] = 1 # initialize count
+                        count_fe[e][(f,e)] = 1 # initialize count
         # print c_fe
-        for e in c_fe:
-            dic =  c_fe[e]
+        for e in count_fe:
+            dic =  count_fe[e]
             for pair in dic: # where pair = (f,e)
                 t[pair] = float(dic[pair]) / len(dic)
         
         # print t
 
+        # DRY: DON'T REPEAT YOURSELF YO
+        # Do the same for eng -> ger
+        count_fe = {e:{} for e in eng_vocab}
+        for aligned_sent in aligned_sents:
+            eng_sent = aligned_sent.mots
+            ger_sent = [None] + aligned_sent.words
+            for e in eng_sent:
+                for f in ger_sent:
+                    if (f,e) in count_fe[e]: # where f given e
+                        count_fe[e][(f,e)] += 1
+                    else:
+                        count_fe[e][(f,e)] = 1 # initialize count
+        # print c_fe
+        for e in count_fe:
+            dic =  count_fe[e]
+            for pair in dic: # where pair = (f,e)
+                t2[pair] = float(dic[pair]) / len(dic)
+        print t2
+       
         # Initialize the alignment parameters to be the uniform distribution over the
         # length of the source sentence
         # Can just take care of it in the loop below
