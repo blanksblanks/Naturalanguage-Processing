@@ -26,9 +26,7 @@ class BerkeleyAligner():
                 alignment.append((j, max_align_prob[1]))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
 
-    def init_t(self, aligned_sents, flipped):
-        t = {}
-
+    def init_vocab(self, aligned_sents, flipped):
         e_vocab = set() # source language in unidirectional model
         f_vocab = set() # taget language in unidirectional model
         for aligned_sent in aligned_sents:
@@ -40,7 +38,12 @@ class BerkeleyAligner():
                 f_vocab.update(aligned_sent.mots)
         # Add None to vocabulary set of target language
         f_vocab.add(None)
+        return e_vocab, f_vocab
         
+    def init_t(self, aligned_sents, flipped):
+        t = {}
+        e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
+
         # Initialize the translation parameters to be the uniform distribution over
         # all possible words thats appear in a target sentence of a sentence
         # containing the source word
