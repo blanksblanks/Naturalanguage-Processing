@@ -26,6 +26,47 @@ class BerkeleyAligner():
                 alignment.append((j, max_align_prob[1]))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
 
+    def init_t(self, aligned_sents, flipped):
+        t = {}
+
+        e_vocab = set() # source language in unidirectional model
+        f_vocab = set() # taget language in unidirectional model
+        for aligned_sent in aligned_sents:
+            if (flipped):
+                e_vocab.update(aligned_sent.mots)
+                f_vocab.update(aligned_sent.words)
+            else:
+                e_vocab.update(aligned_sent.words) 
+                f_vocab.update(aligned_sent.mots)
+        # Add None to vocabulary set of target language
+        f_vocab.add(None)
+        
+        # Initialize the translation parameters to be the uniform distribution over
+        # all possible words thats appear in a target sentence of a sentence
+        # containing the source word
+        count_fe = {e:{} for e in e_vocab} # count of f and e co-appearing
+        # print c_fe
+        for aligned_sent in aligned_sents:
+            if (flipped):
+                e_sent = aligned_sent.mots
+                f_sent = [None] + aligned_sent.words
+            else:
+                e_sent = aligned_sent.words
+                f_sent = [None] + aligned_sent.mots # this works, tested in IDLE
+            for e in e_sent:
+                for f in f_sent:
+                    if (f,e) in count_fe[e]: # where f given e
+                        count_fe[e][(f,e)] += 1
+                    else:
+                        count_fe[e][(f,e)] = 1 # initialize count
+        # print c_fe
+        for e in count_fe:
+            dic =  count_fe[e]
+            for pair in dic: # where pair = (f,e)
+                t[pair] = float(dic[pair]) / len(dic)
+        return t
+        # print t
+
     # Invoked upon initialization
     # Implement the EM algorithm. num_iters is the number of iterations. Returns the 
     # translation and distortion parameters as a tuple.
@@ -91,7 +132,13 @@ class BerkeleyAligner():
             dic =  count_fe[e]
             for pair in dic: # where pair = (f,e)
                 t2[pair] = float(dic[pair]) / len(dic)
-        print t2
+        # print t2
+
+        t3 = self.init_t(aligned_sents, False)
+        t4 = self.init_t(aligned_sents, True)
+
+        print 'Is t = t3?', t == t3
+        print 'Is t2 = t4?', t2 == t4
        
         # Initialize the alignment parameters to be the uniform distribution over the
         # length of the source sentence
