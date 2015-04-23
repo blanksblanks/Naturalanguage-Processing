@@ -3,6 +3,7 @@ from __future__  import division
 import nltk
 import A
 from collections import defaultdict
+from nltk.align  import AlignedSent
 
 
 class BerkeleyAligner():
@@ -12,7 +13,15 @@ class BerkeleyAligner():
 
     # Computes the alignments for align_sent, using this model's parameters. Return
     # an AlignedSent object, with the sentence pair and the alignments computed.
-    # def align(self, align_sent):
+    def align(self, align_sent):
+        alignment = []
+        for j, ger_word in enumerate(align_sent.words):
+            max_align_prob = (self.t[(None, ger_word)], None)
+            for i, eng_word in enumerate(align_sent.mots):
+                max_align_prob = max(max_align_prob, (self.t[(eng_word, ger_word)], i))
+            if max_align_prob[1] is not None:
+                alignment.append((j, max_align_prob[1]))
+        return AlignedSent(align_sent.words, align_sent.mots, alignment)
 
     # Invoked upon initialization
     # Implement the EM algorithm. num_iters is the number of iterations. Returns the 
@@ -53,7 +62,7 @@ class BerkeleyAligner():
             for pair in dic: # where pair = (f,e)
                 t[pair] = float(dic[pair]) / len(dic)
         
-        print t
+        # print t
 
         # Initialize the alignment parameters to be the uniform distribution over the
         # length of the source sentence
@@ -74,23 +83,25 @@ class BerkeleyAligner():
 
         for i in xrange(num_iters):
             print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIteration', i+1, '...'
-            count = {}
-            count_e = {}
+            count = {tup:0 for tup in t.keys()}
+            count_e = {e:0 for e in ger_vocab}
             for aligned_sent in aligned_sents:
                 ger_sent = aligned_sent.words
                 eng_sent = [None] + aligned_sent.mots
-                sum_e = 0
-                for e in ger_sent:
-                    sum_e += t[(f,e)]
-                for e in ger_sent:
-                    count[(f,e)] += (t[(f,e)] / float(sum_e))
-                    count_e[e] += (t[(f,e)] / float(sum_e))
+                for f in eng_sent:
+                    sum_e = 0
+                    for e in ger_sent:
+                        sum_e += t[(f,e)]
+                    for e in ger_sent:
+                        count[(f,e)] += (t[(f,e)] / float(sum_e))
+                        count_e[e] += (t[(f,e)] / float(sum_e))
             for (f,e) in count.keys():
                 t[(f,e)] = float(count[(f,e)] / float(count_e[e]))
-
+        # print t
+        self.t = t
+        self.q = q
         return (t,q)
        
-        # print t
 
     '''
     count_ef = defaultdict(lambda: defaultdict(lambda: 0.0))
@@ -129,11 +140,10 @@ class BerkeleyAligner():
         return dictionary
 
 def main(aligned_sents):
-    ba = BerkeleyAligner(aligned_sents, 1)
-    print ba[0]
-    # A.save_model_output(aligned_sents, ba, "ba.txt")
-    # avg_aer = A.compute_avg_aer(aligned_sents, ba, 50)
+    ba = BerkeleyAligner(aligned_sents, 10)
+    A.save_model_output(aligned_sents, ba, "ba.txt")
+    avg_aer = A.compute_avg_aer(aligned_sents, ba, 50)
 
     print ('Berkeley Aligner')
     print ('---------------------------')
-    # print('Average AER: {0:.3f}\n'.format(avg_aer))
+    print('Average AER: {0:.3f}\n'.format(avg_aer))
