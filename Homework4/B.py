@@ -14,11 +14,14 @@ class BerkeleyAligner():
     # Computes the alignments for align_sent, using this model's parameters. Return
     # an AlignedSent object, with the sentence pair and the alignments computed.
     def align(self, align_sent):
+        # print self.q
         alignment = []
+        l = len(align_sent.words)
+        m = len(align_sent.mots)
         for j, ger_word in enumerate(align_sent.words):
-            max_align_prob = (self.t[(None, ger_word)], None)
+            max_align_prob = (self.t[(None, ger_word)]*self.q[(j+1,0,l,m)], None)
             for i, eng_word in enumerate(align_sent.mots):
-                max_align_prob = max(max_align_prob, (self.t[(eng_word, ger_word)], i))
+                max_align_prob = max(max_align_prob, (self.t[(eng_word, ger_word)]*self.q[(j+1,i+1,l,m)], i), (self.t[(eng_word, ger_word)],i))
             if max_align_prob[1] is not None:
                 alignment.append((j, max_align_prob[1]))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
@@ -33,9 +36,9 @@ class BerkeleyAligner():
         ger_vocab = set() # e_set: source in unidirectional model
         eng_vocab = set() # f_set: target in unidirectional model
         for aligned_sent in aligned_sents:
-            eng_vocab.update(aligned_sent.mots)
             ger_vocab.update(aligned_sent.words) 
-        ger_vocab.add(None) # add NULL values to e_set
+            eng_vocab.update(aligned_sent.mots)
+        eng_vocab.add(None) # add NULL values to e_set
         # print "Eng", en_vocab
         # print "Ger", ge_vocab
         
@@ -108,19 +111,19 @@ class BerkeleyAligner():
                 #        count_e[e] += (t[(f,e)] / float(sum_e))
                 # Update q
                 l = len(ger_sent)
-                m = len(eng_sent)
-                for i in xrange(m):
+                m = len(eng_sent) - 1
+                for i in xrange(m+1):
                    # Calculate delta denominator for q(j|i,l,m)
                    f = eng_sent[i]
                    delta_d = 0
-                   for j in xrange(l):
-                       e = ger_sent[j]
+                   for j in xrange(1, l+1):
+                       e = ger_sent[j-1]
                        # We can just take care of initialization of q here!
                        if (j,i,l,m) not in q:
                            q[(j,i,l,m)] = 1/float(l+1)
                        delta_d += q[(j,i,l,m)] * t[(f,e)]
-                   for j in xrange(l):
-                       e = ger_sent[j]
+                   for j in xrange(1, l+1):
+                       e = ger_sent[j-1]
                        # Update q rule
                        delta = (q[(j,i,l,m)] * t[(f,e)])/float(delta_d)
                        c_fe[(f,e)] += delta
