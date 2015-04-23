@@ -94,6 +94,7 @@ class BerkeleyAligner():
             # count_e = {e:0 for e in ger_vocab}
             # Update q
             c_fe = {tup:0 for tup in t.keys()}
+            # c_fe = t <- doing that makes AER go up > 0.05
             c_e = {e:0 for e in ger_vocab}
             c_ilm = defaultdict(int)
             c_jilm = defaultdict(int)
