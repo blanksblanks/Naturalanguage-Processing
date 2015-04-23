@@ -11,9 +11,11 @@ class BerkeleyAligner():
     def __init__(self, align_sents, num_iter):
         self.t, self.q = self.train(align_sents, num_iter)
 
-    # Computes the alignments for align_sent, using this model's parameters. Return
-    # an AlignedSent object, with the sentence pair and the alignments computed.
     def align(self, align_sent):
+        '''
+        Compute the alignments for align_sent, using this model's parameters. Return
+        an AlignedSent object, with the sentence pair and the alignments computed.
+        '''
         # print self.q
         alignment = []
         l = len(align_sent.words)
@@ -21,7 +23,9 @@ class BerkeleyAligner():
         for j, ger_word in enumerate(align_sent.words):
             max_align_prob = (self.t[(None, ger_word)]*self.q[(j+1,0,l,m)], None)
             for i, eng_word in enumerate(align_sent.mots):
-                max_align_prob = max(max_align_prob, (self.t[(eng_word, ger_word)]*self.q[(j+1,i+1,l,m)], i), (self.t[(eng_word, ger_word)],i))
+                max_align_prob = max(max_align_prob, \
+                        (self.t[(eng_word, ger_word)]*self.q[(j+1,i+1,l,m)], i),\
+                        (self.t[(eng_word, ger_word)],i))
             if max_align_prob[1] is not None:
                 alignment.append((j, max_align_prob[1]))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
@@ -152,19 +156,58 @@ class BerkeleyAligner():
                        c_e[e] += delta
                        c_ilm[(i,l,m)] += delta
                        c_jilm[(j,i,l,m)] += delta
+            # Check new method
+            print 'Are they equal?', (c_fe, c_e, c_ilm, c_jilm) == self.iter_step(aligned_sents, t, q, False)
+
             # Update t
             for (f,e) in c_fe.keys():
                 t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
             for (j,i,l,m) in c_jilm.keys():
                 q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
 
-            
 
         # print t
         self.t = t
         self.q = q
         return (t,q)
-       
+    
+    def iter_step(self, aligned_sents, t, q, flipped):
+        e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
+        c_fe = {tup:0 for tup in t.keys()}
+        c_e = {e:0 for e in e_vocab}
+        c_ilm = defaultdict(int)
+        c_jilm = defaultdict(int)
+
+        for aligned_sent in aligned_sents:
+            if (flipped):
+                e_sent = aligned_sent.mots
+                f_sent = [None] + aligned_sent.words
+            else:
+                e_sent = aligned_sent.words
+                f_sent = [None] + aligned_sent.mots
+            l = len(e_sent)
+            m = len(f_sent) - 1
+            for i in xrange(m+1):
+               # Calculate delta denominator for q(j|i,l,m)
+               f = f_sent[i]
+               delta_d = 0
+               for j in xrange(1, l+1):
+                   e = e_sent[j-1]
+                   # We can just take care of initialization of q here!
+                   if (j,i,l,m) not in q:
+                       q[(j,i,l,m)] = 1/float(l+1)
+                   delta_d += q[(j,i,l,m)] * t[(f,e)]
+               for j in xrange(1, l+1):
+                   e = e_sent[j-1]
+                   # Update q rule
+                   delta = (q[(j,i,l,m)] * t[(f,e)])/float(delta_d)
+                   c_fe[(f,e)] += delta
+                   c_e[e] += delta
+                   c_ilm[(i,l,m)] += delta
+                   c_jilm[(j,i,l,m)] += delta
+        return (c_fe, c_e, c_ilm, c_jilm)
+
+
 
     '''
     count_ef = defaultdict(lambda: defaultdict(lambda: 0.0))
@@ -203,7 +246,7 @@ class BerkeleyAligner():
         return dictionary
 
 def main(aligned_sents):
-    ba = BerkeleyAligner(aligned_sents, 10)
+    ba = BerkeleyAligner(aligned_sents, 1)
     A.save_model_output(aligned_sents, ba, "ba.txt")
     avg_aer = A.compute_avg_aer(aligned_sents, ba, 50)
 
