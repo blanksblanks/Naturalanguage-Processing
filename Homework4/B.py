@@ -27,6 +27,10 @@ class BerkeleyAligner():
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
 
     def init_vocab(self, aligned_sents, flipped):
+        """
+        Return vocabulary set for source language e and target language f.
+        Helper function.
+        """
         e_vocab = set() # source language in unidirectional model
         f_vocab = set() # taget language in unidirectional model
         for aligned_sent in aligned_sents:
@@ -41,12 +45,13 @@ class BerkeleyAligner():
         return e_vocab, f_vocab
         
     def init_t(self, aligned_sents, flipped):
+        """
+        Initialize the translation parameters to be the uniform distribution over
+        all possible words thats appear in a target sentence of a sentence
+        containing the source word. Helper function.
+        """
         t = {}
         e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
-
-        # Initialize the translation parameters to be the uniform distribution over
-        # all possible words thats appear in a target sentence of a sentence
-        # containing the source word
         count_fe = {e:{} for e in e_vocab} # count of f and e co-appearing
         # print c_fe
         for aligned_sent in aligned_sents:
@@ -70,78 +75,21 @@ class BerkeleyAligner():
         return t
         # print t
 
-    # Invoked upon initialization
-    # Implement the EM algorithm. num_iters is the number of iterations. Returns the 
-    # translation and distortion parameters as a tuple.
     def train(self, aligned_sents, num_iters):
+        """
+        Implement the EM algorithm. num_iters is the number of iterations. Returns the 
+        translation and distortion parameters as a tuple. Invoked upon initialization.
+        """
         # ger -> eng
         t = {}
         q = {}
         # eng -> ger
-        t2 = {}
-        q2 = {}
+        t_flipped = {}
+        q_flipped = {}
 
-        ger_vocab = set() # e_set: source in unidirectional model
-        eng_vocab = set() # f_set: target in unidirectional model
-        for aligned_sent in aligned_sents:
-            ger_vocab.update(aligned_sent.words) 
-            eng_vocab.update(aligned_sent.mots)
-        # Create vocab for flipped model
-        eng_vocab2 = eng_vocab
-        ger_vocab2 = ger_vocab
-        # Add None to target languages
-        eng_vocab.add(None)
-        ger_vocab2.add(None)
-        
-        # Usually t(f|e) is given by 1 over set of foreign words
-        # init_prob = 1/len(ger_vocab)
-        
-        # Initialize the translation parameters to be the uniform distribution over
-        # all possible words thats appear in a target sentence of a sentence
-        # containing the source word
-        count_fe = {e:{} for e in ger_vocab}
-        # print c_fe
-        for aligned_sent in aligned_sents:
-            ger_sent = aligned_sent.words
-            eng_sent = [None] + aligned_sent.mots # this works, tested in IDLE
-            for e in ger_sent:
-                for f in eng_sent:
-                    if (f,e) in count_fe[e]: # where f given e
-                        count_fe[e][(f,e)] += 1
-                    else:
-                        count_fe[e][(f,e)] = 1 # initialize count
-        # print c_fe
-        for e in count_fe:
-            dic =  count_fe[e]
-            for pair in dic: # where pair = (f,e)
-                t[pair] = float(dic[pair]) / len(dic)
-        
-        # print t
-
-        # DRY: DON'T REPEAT YOURSELF YO
-        # Do the same for eng -> ger
-        count_fe = {e:{} for e in eng_vocab}
-        for aligned_sent in aligned_sents:
-            eng_sent = aligned_sent.mots
-            ger_sent = [None] + aligned_sent.words
-            for e in eng_sent:
-                for f in ger_sent:
-                    if (f,e) in count_fe[e]: # where f given e
-                        count_fe[e][(f,e)] += 1
-                    else:
-                        count_fe[e][(f,e)] = 1 # initialize count
-        # print c_fe
-        for e in count_fe:
-            dic =  count_fe[e]
-            for pair in dic: # where pair = (f,e)
-                t2[pair] = float(dic[pair]) / len(dic)
-        # print t2
-
-        t3 = self.init_t(aligned_sents, False)
-        t4 = self.init_t(aligned_sents, True)
-
-        print 'Is t = t3?', t == t3
-        print 'Is t2 = t4?', t2 == t4
+        ger_vocab, eng_vocab = self.init_vocab(aligned_sents, False)
+        t = self.init_t(aligned_sents, False)
+        t_flipped = self.init_t(aligned_sents, True)
        
         # Initialize the alignment parameters to be the uniform distribution over the
         # length of the source sentence
@@ -158,9 +106,6 @@ class BerkeleyAligner():
                         q[(j,i,l,m)] = 1/float(l+1)
         # print q
         '''
-
-        # total_e = defaultdict(lambda: 0.0)
-        # t_ef = t
 
         for i in xrange(num_iters):
             print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIteration', i+1, '...'
