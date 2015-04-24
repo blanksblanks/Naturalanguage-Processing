@@ -130,7 +130,7 @@ class BetterBerkeleyAligner():
        
 
         for i in xrange(num_iters):
-            print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIteration', i+1, '...'
+            print 'Iteration', i+1, '...'
             
             c_fe = {tup:0 for tup in t.keys()}
             c_e = {e:0 for e in ger_vocab}
