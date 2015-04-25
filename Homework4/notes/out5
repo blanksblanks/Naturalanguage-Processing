@@ -1,0 +1,226 @@
+Note: when IBM1 and IBM2 are initialized in accordance with A1 and A2 instructions
+i.e. using 10 iterations of EM for first 350 sentences in corpus
+
+IBM Model 1
+---------------------------
+Average AER: 0.665
+
+IBM Model 2
+---------------------------
+Average AER: 0.650
+
+
+1 : same aer (0.142857)
+
+2 : same aer (0.690141)
+
+3 : same aer (0.925926)
+
+4 : ibm1 (0.828571) outperformed ibm2 (0.885714)
+Im Parlament besteht der Wunsch nach einer Aussprache im Verlauf dieser Sitzungsperiode in den nächsten Tagen .
+You have requested a debate on this subject in the course of the next few days , during this part-session .
+(refr) 0-8 1-0 2-1 3-6 4-2 5-2 6-3 7-4 8-5 9-17 9-18 10-18 11-19 12-11 13-12 14-13 15-14 15-15 16-20
+(ibm1) 0-15 1-19 2-15 3-11 4-15 5-13 6-0 7-4 8-17 9-15 10-2 11-15 12-8 13-17 14-13 15-15
+(ibm2) 0-7 1-19 2-2 3-11 4-15 5-13 6-0 7-4 8-17 9-15 10-2 11-7 12-8 13-14 14-13 15-7
+
+5 : ibm2 (0.666667) outperformed ibm1 (0.750000)
+Ich bitte Sie , sich zu einer Schweigeminute zu erheben .
+Please rise , then , for this minute ' s silence .
+(refr) 0-0 1-0 2-0 3-4 4-1 5-5 6-6 7-7 7-8 7-9 7-10 8-10 9-10 10-11
+(ibm1) 0-1 1-1 2-1 3-4 4-10 5-10 6-10 7-10 8-10 9-1
+(ibm2) 0-0 1-1 2-0 3-2 4-10 5-10 6-10 7-7 8-10 9-0
+
+6 : ibm2 (0.666667) outperformed ibm1 (0.750000)
+( Das Parlament erhebt sich zu einer Schweigeminute . )
+( The House rose and observed a minute ' s silence )
+(refr) 0-0 1-1 2-2 3-3 3-4 3-5 4-3 5-5 6-6 7-7 7-8 7-9 7-10 8-10 9-11
+(ibm1) 0-11 1-5 2-5 3-5 4-10 5-10 6-10 7-10 9-11
+(ibm2) 0-0 1-5 2-3 3-5 4-10 5-9 6-10 7-7 9-11
+
+7 : same aer (0.571429)
+
+8 : ibm1 (0.791667) outperformed ibm2 (0.833333)
+Wie Sie sicher aus der Presse und dem Fernsehen wissen , gab es in Sri Lanka mehrere Bombenexplosionen mit zahlreichen Toten .
+You will be aware from the press and television that there have been a number of bomb explosions and killings in Sri Lanka .
+(refr) 0-0 1-0 2-1 2-2 3-4 4-5 5-6 6-7 7-8 8-8 9-3 10-9 11-10 11-11 11-12 12-10 13-20 14-21 15-22 16-14 16-15 17-16 17-17 17-18 17-19 19-13 21-23
+(ibm1) 0-19 1-0 2-19 3-4 4-15 5-19 6-18 7-22 8-19 9-19 10-2 11-22 12-22 13-20 14-22 15-22 16-19 17-19 18-19 19-19 20-19
+(ibm2) 0-6 1-0 2-16 3-4 4-4 5-17 6-18 7-22 8-19 9-8 10-2 11-21 12-22 13-20 14-19 15-22 16-19 17-8 18-17 19-19 20-8
+
+9 : ibm2 (0.709677) outperformed ibm1 (0.741935)
+Zu den Attentatsopfern , die es in jüngster Zeit in Sri Lanka zu beklagen gab , zählt auch Herr Kumar Ponnambalam , der dem Europäischen Parlament erst vor wenigen Monaten einen Besuch abgestattet hatte .
+One of the people assassinated very recently in Sri Lanka was Mr Kumar Ponnambalam , who had visited the European Parliament just a few months ago .
+(refr) 1-2 2-3 2-4 2-5 3-15 5-16 6-17 7-6 8-6 9-7 10-8 11-9 14-10 16-0 18-11 19-12 20-13 21-14 22-18 23-18 24-19 25-20 26-21 28-22 28-23 29-24 29-25 34-26
+(ibm1) 0-17 1-23 2-17 3-14 4-18 5-9 6-7 7-6 8-6 9-7 10-9 11-9 12-16 13-17 14-9 15-14 16-17 17-3 18-11 19-17 20-17 21-14 22-1 23-24 24-19 25-20 26-17 27-3 28-25 29-17 30-17 31-17 32-17 33-16
+(ibm2) 0-17 1-23 2-17 3-14 4-18 5-9 6-7 7-6 8-6 9-7 10-8 11-9 12-16 13-17 14-8 15-14 16-17 17-3 18-11 19-17 20-17 21-14 22-1 23-24 24-19 25-20 26-17 27-3 28-25 29-17 30-17 31-17 32-17 33-17
+
+10 : ibm2 (0.470588) outperformed ibm1 (0.588235)
+Ja , Herr Evans , ich denke , daß eine derartige Initiative durchaus angebracht ist .
+Yes , Mr Evans , I feel an initiative of the type you have just suggested would be entirely appropriate .
+(refr) 0-0 1-1 2-2 3-3 4-4 5-5 6-6 8-6 9-7 10-10 10-11 11-8 12-15 12-18 13-16 13-17 13-19 14-16 15-20
+(ibm1) 0-19 1-4 2-2 3-3 4-4 5-5 6-19 7-4 8-6 9-7 10-19 11-19 12-19 13-19 14-8
+(ibm2) 0-18 1-4 2-2 3-3 4-4 5-5 6-18 7-4 8-6 9-7 10-11 11-8 12-8 13-19 14-8
+
+11 : same aer (0.483871)
+
+12 : same aer (0.571429)
+
+13 : ibm1 (0.714286) outperformed ibm2 (0.785714)
+Könnten Sie mir eine Auskunft zu Artikel 143 im Zusammenhang mit der Unzulässigkeit geben ?
+I would like your advice about Rule 143 concerning inadmissibility .
+(refr) 0-1 2-0 4-3 4-4 5-5 6-6 7-7 8-8 9-8 10-8 12-9 13-9 14-10
+(ibm1) 0-9 1-3 2-3 3-9 4-9 5-5 6-6 7-9 8-9 9-9 10-9 11-6 12-9 13-9 14-9
+(ibm2) 0-4 1-3 2-3 3-8 4-9 5-5 6-6 7-8 8-9 9-4 10-9 11-6 12-7 13-9 14-4
+
+14 : ibm1 (0.674419) outperformed ibm2 (0.720930)
+Meine Frage betrifft eine Angelegenheit , die am Donnerstag zur Sprache kommen wird und auf die ich dann erneut verweisen werde .
+My question relates to something that will come up on Thursday and which I will then raise again .
+(refr) 0-0 1-1 2-2 3-4 4-4 5-5 6-5 7-9 7-10 8-10 9-3 10-8 11-7 12-6 13-11 15-12 16-13 17-15 18-17 19-16 20-14 21-18
+(ibm1) 0-0 1-16 2-4 3-7 4-2 5-3 6-12 7-10 8-10 9-8 10-2 11-2 12-14 13-11 14-9 15-12 16-13 17-15 18-2 19-2 20-2
+(ibm2) 0-0 1-16 2-4 3-7 4-2 5-3 6-12 7-17 8-10 9-8 10-2 11-2 12-14 13-11 14-9 15-12 16-13 17-15 18-2 19-2 20-2
+
+15 : ibm1 (0.802469) outperformed ibm2 (0.827160)
+Das Parlament wird sich am Donnerstag mit dem Cunha-Bericht über mehrjährige Ausrichtungsprogramme befassen , der in Absatz 6 vorschlägt , daß Länder , die ihr Soll zur Flottenverkleinerung nicht erfüllen , jährlich mit einer Art Quotenstrafe belegt werden sollen .
+The Cunha report on multiannual guidance programmes comes before Parliament on Thursday and contains a proposal in paragraph 6 that a form of quota penalties should be introduced for countries which fail to meet their fleet reduction targets annually .
+(refr) 0-9 1-9 2-7 4-10 4-11 5-11 6-12 6-13 7-0 8-1 8-2 9-3 10-4 11-5 11-6 12-5 14-14 15-16 16-17 17-18 18-15 20-28 21-29 23-30 24-34 25-32 26-32 27-31 27-35 27-36 28-31 29-33 30-19 31-38 33-20 34-21 35-23 35-24 36-24 37-26 38-25 39-39
+(ibm1) 0-38 1-9 2-34 3-7 4-11 5-11 6-33 7-38 8-38 9-10 10-38 11-38 12-38 13-26 14-22 15-16 16-17 17-38 18-38 19-26 20-19 21-29 22-26 23-30 24-38 25-38 26-7 27-38 28-7 29-38 30-26 31-38 32-33 33-17 34-38 35-38 36-38 37-21 38-38
+(ibm2) 0-38 1-9 2-38 3-7 4-11 5-11 6-33 7-38 8-38 9-10 10-38 11-38 12-38 13-26 14-22 15-16 16-17 17-38 18-38 19-26 20-19 21-38 22-26 23-30 24-38 25-38 26-7 27-38 28-7 29-38 30-26 31-38 32-33 33-17 34-38 35-38 36-38 37-21 38-38
+
+16 : ibm1 (0.769231) outperformed ibm2 (0.777778)
+Und zwar sollen derartige Strafen trotz des Grundsatzes der relativen Stabilität verhängt werden .
+It says that this should be done despite the principle of relative stability .
+(refr) 1-0 2-4 3-3 4-1 5-7 6-8 7-9 8-10 9-11 10-12 11-6 12-5 13-13
+(ibm1) 0-7 1-7 2-7 3-7 4-7 5-7 6-7 7-7 8-10 9-12 10-12 11-7 12-7
+(ibm2) 0-11 1-1 2-7 3-1 4-7 5-1 6-7 7-7 8-9 9-11 10-12 11-12 12-1 13-13
+
+17 : ibm2 (0.728814) outperformed ibm1 (0.762712)
+Ich meine , daß der Grundsatz der relativen Stabilität einen elementaren Rechtsgrundsatz der gemeinsamen Fischereipolitik darstellt und ein Vorschlag , diesen zu unterlaufen , rechtlich unzulässig wäre .
+I believe that the principle of relative stability is a fundamental legal principle of the common fisheries policy and a proposal to subvert it would be legally inadmissible .
+(refr) 0-0 1-1 2-2 3-2 4-3 5-4 6-5 7-6 8-7 9-9 10-10 11-11 11-12 12-13 12-14 13-15 14-16 14-17 15-17 16-18 17-19 18-20 19-21 20-22 20-23 21-21 22-22 24-26 25-27 26-24 26-25 27-28
+(ibm1) 0-0 1-27 2-25 3-2 4-13 5-12 6-13 7-7 8-7 9-27 10-27 11-27 12-13 13-27 14-27 15-27 16-18 17-15 18-20 19-25 20-27 21-23 22-27 23-25 24-27 25-27 26-27
+(ibm2) 0-0 1-27 2-25 3-2 4-13 5-10 6-12 7-6 8-7 9-15 10-16 11-27 12-13 13-26 14-10 15-11 16-18 17-15 18-20 19-9 20-27 21-23 22-27 23-25 24-27 25-27 26-22
+
+18 : same aer (0.709091)
+
+19 : same aer (0.781818)
+
+20 : same aer (0.846154)
+
+21 : ibm1 (0.500000) outperformed ibm2 (0.583333)
+Vielen Dank , Herr Segni , das will ich gerne tun .
+Thank you , Mr Segni , I shall do so gladly .
+(refr) 0-0 1-0 1-1 2-2 3-3 4-4 5-5 7-7 8-6 9-10 10-8 10-9 11-11
+(ibm1) 0-0 1-0 2-5 3-3 4-10 5-5 6-9 7-10 8-6 9-10 10-10
+(ibm2) 0-0 1-0 2-5 3-3 4-10 5-5 6-4 7-4 8-9 9-10 10-10
+
+22 : same aer (0.562500)
+
+23 : same aer (0.652174)
+
+24 : ibm2 (0.466667) outperformed ibm1 (0.733333)
+Das ist der Fall von Alexander Nikitin .
+It is the case of Alexander Nikitin .
+(refr) 0-0 1-1 2-2 3-3 4-4 5-5 6-6 7-7
+(ibm1) 0-6 1-0 2-4 3-3 4-6 5-6 6-6
+(ibm2) 0-0 1-1 2-4 3-3 4-5 5-6 6-6
+
+25 : same aer (0.724138)
+
+26 : same aer (0.736842)
+
+27 : same aer (0.720930)
+
+28 : ibm2 (0.416667) outperformed ibm1 (0.652174)
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+(refr) 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+(ibm1) 0-11 1-4 2-2 3-2 4-4 5-10 6-11 7-11 8-9 9-11
+(ibm2) 0-6 1-1 2-2 3-6 4-4 5-10 6-6 7-11 8-9 9-11 10-12
+
+29 : same aer (0.619048)
+
+30 : same aer (0.555556)
+
+31 : ibm2 (0.538462) outperformed ibm1 (0.760000)
+Ich hoffe , daß dort in Ihrem Sinne entschieden wird .
+It will , I hope , be examined in a positive light .
+(refr) 0-0 0-3 1-1 1-3 1-4 2-2 2-5 3-6 5-8 6-9 6-10 7-10 7-11 8-11 10-12
+(ibm1) 0-10 1-4 2-5 3-4 4-7 5-8 6-7 7-7 8-7 9-1
+(ibm2) 0-3 1-4 2-2 3-4 4-7 5-8 6-7 7-11 8-7 9-1 10-12
+
+32 : same aer (0.615385)
+
+33 : same aer (0.757576)
+
+34 : same aer (0.714286)
+
+35 : same aer (0.750000)
+
+36 : same aer (0.428571)
+
+37 : same aer (0.655172)
+
+38 : same aer (0.523810)
+
+39 : ibm2 (0.684211) outperformed ibm1 (0.736842)
+Es ist eine Schande , daß wir Regeln verabschieden , an die wir uns dann selbst nicht halten .
+It seems absolutely disgraceful that we pass legislation and do not adhere to it ourselves .
+(refr) 0-0 1-1 2-3 3-2 3-3 4-4 5-4 6-5 7-7 8-6 9-12 10-12 11-13 12-13 13-14 15-14 16-9 16-10 17-11 18-15
+(ibm1) 0-6 1-0 2-6 3-6 4-12 5-4 6-5 7-6 8-14 9-12 10-11 11-7 12-5 13-14 14-6 15-11 16-10 17-6
+(ibm2) 0-3 1-0 2-2 3-2 4-12 5-4 6-5 7-3 8-14 9-12 10-11 11-7 12-5 13-14 14-3 15-11 16-10 17-6
+
+40 : ibm1 (0.538462) outperformed ibm2 (0.589744)
+Frau Lynne , Sie haben völlig recht , und ich werde prüfen , ob all dies wirklich so ist .
+Mrs Lynne , you are quite right and I shall check whether this has actually not been done .
+(refr) 0-0 1-1 2-2 3-3 4-4 5-5 6-6 8-7 9-8 10-9 11-10 13-11 14-12 15-12 16-14 17-15 17-16 17-17 18-13 19-18
+(ibm1) 0-0 1-1 2-2 3-3 4-5 5-1 6-1 7-2 8-7 9-8 10-9 11-10 12-2 13-11 14-1 15-17 16-1 17-5 18-6
+(ibm2) 0-0 1-1 2-4 3-3 4-5 5-1 6-1 7-2 8-7 9-8 10-9 11-10 12-4 13-11 14-1 15-17 16-1 17-5 18-6
+
+41 : ibm1 (0.701493) outperformed ibm2 (0.731343)
+Ich werde die Frage auch den Quästoren unterbreiten . Ich bin mir sicher , daß diese großen Wert darauf legen , daß wir die Rechtsvorschriften , die wir verabschieden , auch selbst einhalten .
+I shall also refer the matter to the College of Quaestors , and I am certain that they will be keen to ensure that we comply with the regulations we ourselves vote on .
+(refr) 0-0 1-1 1-3 2-4 3-5 4-2 5-7 6-8 6-10 7-10 8-12 9-13 10-14 11-14 12-15 13-16 14-16 15-17 16-20 17-20 18-21 18-22 19-20 20-21 21-23 22-24 23-27 24-28 27-29 28-31 30-30 31-30 32-25 32-26 33-33
+(ibm1) 0-13 1-1 2-27 3-25 4-2 5-17 6-10 7-25 9-13 10-14 11-25 12-25 13-11 14-23 15-28 16-25 17-25 18-14 19-25 20-11 21-23 22-29 23-27 24-25 25-11 26-27 27-29 28-30 29-11 30-2 31-30 32-25
+(ibm2) 0-0 1-1 2-27 3-3 4-2 5-3 6-10 7-20 9-13 10-14 11-3 12-3 13-11 14-23 15-28 16-15 17-3 18-14 19-8 20-11 21-23 22-29 23-4 24-25 25-11 26-4 27-29 28-30 29-19 30-2 31-30 32-3
+
+42 : ibm2 (0.689655) outperformed ibm1 (0.724138)
+Frau Präsidentin ! Frau Díez González und ich hatten einige Anfragen zu bestimmten , in einer spanischen Zeitung wiedergegebenen Stellungnahmen der Vizepräsidentin , Frau de Palacio , gestellt .
+Madam President , Mrs Díez González and I had tabled questions on certain opinions of the Vice-President , Mrs de Palacio , which appeared in a Spanish newspaper .
+(refr) 0-0 1-1 2-1 2-2 3-3 4-4 5-5 6-6 7-7 8-8 9-9 10-10 11-11 12-12 14-24 15-25 16-26 17-27 18-27 19-13 20-14 20-15 21-16 22-17 23-18 24-19 25-20 26-21 27-22 28-28
+(ibm1) 0-18 1-0 2-1 3-18 4-26 5-26 6-6 7-7 8-26 9-26 10-27 11-8 12-27 13-21 14-24 15-27 16-26 17-26 18-26 19-26 20-14 21-26 22-21 23-18 24-27 25-27 26-21 27-26
+(ibm2) 0-18 1-0 2-1 3-18 4-26 5-26 6-6 7-7 8-26 9-26 10-10 11-8 12-19 13-21 14-24 15-10 16-26 17-26 18-26 19-26 20-14 21-26 22-21 23-18 24-20 25-19 26-21 27-26
+
+43 : same aer (0.725490)
+
+44 : same aer (0.333333)
+
+45 : ibm1 (0.718750) outperformed ibm2 (0.781250)
+Die früher beantworteten Anfragen bezogen sich auf das Auftreten von Frau de Palacio in einer bestimmten Angelegenheit , nicht auf die am 18. November des vergangenen Jahres in der Tageszeitung ABC erschienenen Erklärungen .
+The questions answered previously referred to Mrs de Palacio ' s intervention , on another occasion , and not to these comments which appeared in the ABC newspaper on 18 November .
+(refr) 0-0 1-3 2-2 3-1 4-4 5-4 6-5 7-22 10-6 11-7 12-8 12-9 13-13 14-14 17-16 17-17 18-18 19-19 20-20 21-28 22-29 23-30 24-10 27-24 28-25 29-26 29-27 30-26 31-26 32-26 33-31
+(ibm1) 0-0 1-30 2-30 3-27 4-30 5-30 6-28 7-3 8-30 9-9 10-6 11-27 12-27 13-24 14-2 15-27 16-30 17-16 18-18 19-28 20-20 21-30 22-30 23-30 24-10 25-30 26-30 27-24 28-25 29-30 30-30 31-30 32-30
+(ibm2) 0-0 1-30 2-11 3-1 4-3 5-11 6-13 7-3 8-26 9-9 10-6 11-8 12-7 13-24 14-2 15-7 16-30 17-16 18-18 19-13 20-25 21-26 22-23 23-26 24-10 25-23 26-27 27-24 28-9 29-30 30-30 31-30 32-30
+
+46 : ibm1 (0.375000) outperformed ibm2 (0.500000)
+Lieber Kollege , wir werden das prüfen .
+Mr Berenguer Fuster , we shall check all this .
+(refr) 0-1 0-2 1-0 2-3 3-4 4-5 5-8 6-6 7-9
+(ibm1) 0-2 1-2 2-3 3-4 4-5 5-2 6-6
+(ibm2) 0-2 1-2 2-3 3-4 4-2 5-2 6-6
+
+47 : ibm2 (0.485714) outperformed ibm1 (0.714286)
+Ich muß Ihnen aber sagen , daß ich die Lage im Moment für etwas verworren halte .
+I admit that , at present , the matter seems to be somewhat confused .
+(refr) 0-0 1-1 2-1 3-1 4-1 5-2 5-3 6-2 8-7 10-4 11-4 11-5 12-10 13-11 13-12 14-8 14-13 15-9 16-14
+(ibm1) 0-0 1-13 2-13 3-13 4-13 5-6 6-2 7-0 8-7 9-13 10-5 11-13 12-9 13-13 14-13 15-9
+(ibm2) 0-0 1-1 2-12 3-1 4-1 5-11 6-2 7-0 8-7 9-1 10-5 11-1 12-9 13-12 14-13 15-9
+
+48 : same aer (0.714286)
+
+49 : ibm1 (0.736842) outperformed ibm2 (0.789474)
+Die heutige Entscheidung gegen eine Verlängerung des Embargos birgt angesichts der dortigen Lage eine sehr große Gefahr .
+Today 's decision not to renew the embargo is extremely dangerous considering the situation there .
+(refr) 1-0 1-1 2-2 3-3 3-4 4-4 5-5 6-6 7-7 8-7 8-8 9-11 10-12 11-13 11-14 12-13 13-8 14-9 15-9 16-10 17-15
+(ibm1) 0-1 1-0 2-11 3-2 4-11 5-7 6-7 7-7 8-0 9-0 10-12 11-0 12-13 13-11 14-9 15-0 16-0
+(ibm2) 0-1 1-0 2-11 3-2 4-11 5-7 6-7 7-5 8-0 9-0 10-12 11-0 12-13 13-11 14-9 15-0 16-0
+
+50 : same aer (0.675676)

@@ -1,0 +1,10 @@
+head -10 file (to cat only first few lines)
+
+filename keys:
+out1: original words, mots, alignment
+out2: ibm1 (s10i20) words, mots, alignment
+out3: diff ibm1.txt ibm2.txt
+out4: s10i20 - trained on first 10 sentences with 20 iterationrs
+      accidentally thought higher aer meant better performance -_-
+out5: s350i10
+out6: s350i5
