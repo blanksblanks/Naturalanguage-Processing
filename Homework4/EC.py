@@ -39,12 +39,14 @@ class BetterBerkeleyAligner():
         alignment = []
         e_sent = align_sent.words
         f_sent = align_sent.mots
+        l = len(e_sent)
+        m = len(f_sent)
         for i, f_word in enumerate(f_sent):
             p_fe = defaultdict(float)
             p_ef = defaultdict(float)
             for j, e_word in enumerate(e_sent):
-                p_fe[(f_word, e_word)] = self.t[(f_word, e_word)]
-                p_ef[(e_word, f_word)] = self.t[(e_word, f_word)]
+                p_fe[(f_word, e_word)] = max(self.t[(f_word, e_word)], (self.t[(f_word, e_word)] * self.q[(j+1,i,l,m)]))
+                p_ef[(e_word, f_word)] = max(self.t[(e_word, f_word)], (self.t[(e_word, f_word)] * self.q[(i+1,j,m,l)]))
             # Best alignments with p(f|e) and p(e|f)
             max_f_fe, max_e_fe = max(p_fe, key=p_fe.get)
             max_f_ef, max_e_ef = max(p_ef, key=p_ef.get)
@@ -60,8 +62,6 @@ class BetterBerkeleyAligner():
                 else:
                     alignment.append((e_sent.index(max_f_ef), f_sent.index(max_e_ef)))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
-                
-            
 
     def init_vocab(self, aligned_sents, flipped):
         """
@@ -152,10 +152,19 @@ class BetterBerkeleyAligner():
                        # We can just take care of initialization of q here!
                        if (j,i,l,m) not in q:
                            q[(j,i,l,m)] = 1/float(l+1)
+                       # This brings AER from 0.575 to 0.582...
+                       # try:
+                       #    t_avg = (t[(f,e)] + t_flipped[(e,f)]) / 2 
+                       # except KeyError:
+                       #    t_avg = t[(f,e)]
                        delta_d += q[(j,i,l,m)] * t[(f,e)]
                    for j in xrange(1, l+1):
                        e = ger_sent[j-1]
-                       delta = (q[(j,i,l,m)] * t[(f,e)])/float(delta_d)
+                       # try:
+                       #    t_avg = (t[(f,e)] + t_flipped[(e,f)]) / 2 
+                       # except KeyError:
+                       #    t_avg = t[(f,e)]
+                       delta = (q[(j,i,l,m)] * t[(f,e)]) / float(delta_d)
                        c_fe[(f,e)] += delta
                        c_e[e] += delta
                        c_ilm[(i,l,m)] += delta
@@ -188,9 +197,18 @@ class BetterBerkeleyAligner():
                        # We can just take care of initialization of q here!
                        if (j,i,l,m) not in q_flipped:
                            q_flipped[(j,i,l,m)] = 1/float(l+1)
+                       # try:
+                       #    t_avg = (t_flipped[(f,e)] + t[(e,f)]) / 2 
+                       #except KeyError:
+                       #    t_avg = t_flipped[(f,e)]
                        delta_d += q_flipped[(j,i,l,m)] * t_flipped[(f,e)]
                    for j in xrange(1, l+1):
                        e = e_sent[j-1]
+                       # try:
+                       #    t_avg = (t_flipped[(f,e)] + t[(e,f)]) / 2 
+                       # except KeyError:
+                       #    t_avg = t_flipped[(f,e)]
+                       # delta = (q_flipped[(j,i,l,m)] * t_avg)/float(delta_d)
                        delta = (q_flipped[(j,i,l,m)] * t_flipped[(f,e)])/float(delta_d)
                        c_fe_flipped[(f,e)] += delta
                        c_e_flipped[e] += delta
@@ -207,8 +225,10 @@ class BetterBerkeleyAligner():
         self.t = t
         self.t.update(t_flipped)
         self.q = q
+        self.q.update(q_flipped)
+        print '\n'
         return (self.t, self.q) 
-        '''
+        """
         final_t = {}
         final_q = {}
         for (f,e) in t.keys():
@@ -231,7 +251,7 @@ class BetterBerkeleyAligner():
         self.q = final_q
         
         return (final_t,final_q)
-        '''
+        """
 
 def main(aligned_sents):
     ba = BetterBerkeleyAligner(aligned_sents, 10)

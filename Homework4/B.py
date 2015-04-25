@@ -12,10 +12,10 @@ class BerkeleyAligner():
         self.t, self.q = self.train(align_sents, num_iter)
 
     def align(self, align_sent):
-        '''
+        """
         Compute the alignments for align_sent, using this model's parameters. Return
         an AlignedSent object, with the sentence pair and the alignments computed.
-        '''
+        """
         # print self.q
         alignment = []
         l = len(align_sent.words)
@@ -24,60 +24,12 @@ class BerkeleyAligner():
             max_align_prob = (self.t[(None, ger_word)]*self.q[(j+1,0,l,m)], None)
             for i, eng_word in enumerate(align_sent.mots):
                 max_align_prob = max(max_align_prob, \
-                        (self.t[(eng_word, ger_word)]*self.q[(j+1,i+1,l,m)], i),\
+                        (self.t[(eng_word, ger_word)]*self.q[(j+1,i,l,m)], i),\
                         (self.t[(eng_word, ger_word)],i))
             if max_align_prob[1] is not None:
                 alignment.append((j, max_align_prob[1]))
         return AlignedSent(align_sent.words, align_sent.mots, alignment)
 
-    def init_vocab(self, aligned_sents, flipped):
-        """
-        Return vocabulary set for source language e and target language f.
-        Helper function.
-        """
-        e_vocab = set() # source language in unidirectional model
-        f_vocab = set() # taget language in unidirectional model
-        for aligned_sent in aligned_sents:
-            if (flipped):
-                e_vocab.update(aligned_sent.mots)
-                f_vocab.update(aligned_sent.words)
-            else:
-                e_vocab.update(aligned_sent.words) 
-                f_vocab.update(aligned_sent.mots)
-        # Add None to vocabulary set of target language
-        f_vocab.add(None)
-        return e_vocab, f_vocab
-        
-    def init_t(self, aligned_sents, flipped):
-        """
-        Initialize the translation parameters to be the uniform distribution over
-        all possible words thats appear in a target sentence of a sentence
-        containing the source word. Helper function.
-        """
-        t = {}
-        e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
-        count_fe = {e:{} for e in e_vocab} # count of f and e co-appearing
-        # print c_fe
-        for aligned_sent in aligned_sents:
-            if (flipped):
-                e_sent = aligned_sent.mots
-                f_sent = [None] + aligned_sent.words
-            else:
-                e_sent = aligned_sent.words
-                f_sent = [None] + aligned_sent.mots # this works, tested in IDLE
-            for e in e_sent:
-                for f in f_sent:
-                    if (f,e) in count_fe[e]: # where f given e
-                        count_fe[e][(f,e)] += 1
-                    else:
-                        count_fe[e][(f,e)] = 1 # initialize count
-        # print c_fe
-        for e in count_fe:
-            dic =  count_fe[e]
-            for pair in dic: # where pair = (f,e)
-                t[pair] = float(dic[pair]) / len(dic)
-        return t
-        # print t
 
     def train(self, aligned_sents, num_iters):
         """
@@ -97,7 +49,7 @@ class BerkeleyAligner():
        
 
         for i in xrange(num_iters):
-            print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIteration', i+1, '...'
+            print 'Iteration', i+1, '...'
             
             c_fe = {tup:0 for tup in t.keys()}
             c_e = {e:0 for e in ger_vocab}
@@ -188,17 +140,70 @@ class BerkeleyAligner():
                 final_t[(f,e)] = float(t[(f,e)] + t_flipped[(e,f)]) / 2
             except KeyError:
                 final_t[(f,e)] = t[(f,e)]
-                print 'Key Error for (f,e):', f, e, '->', e, f
+                # print 'Key Error for (f,e):', f, e, '->', e, f
         for (j,i,l,m) in q.keys():
             try:
+                # Originally, j is eng, i is ger, l is len(ger), m is len(eng)
+                # For flipped version, i+1 is ger (bc None), j-1 is eng (no None),
+                # m-1 is len(eng - None), l+1 is len(ger + None)
+                # NVM I don't consider None in the lengths l or m
                 final_q[(j,i,l,m)] = float(q[(j,i,l,m)] + q_flipped[(i+1,j-1,m,l)]) / 2
             except KeyError:
                 final_q[(j,i,l,m)] = q[(j,i,l,m)]
-                print 'Key error for (j,i,l,m):', j, i, l, m, '->', i+1, j-1, m, l
+                # print 'Key Error for (j,i,l,m):', j, i, l, m, '->', i+1, j-1, m, l
         self.t = final_t
         self.q = final_q
+        print '\n'
         return (final_t,final_q)
 
+    def init_vocab(self, aligned_sents, flipped):
+        """
+        Return vocabulary set for source language e and target language f.
+        Helper function.
+        """
+        e_vocab = set() # source language in unidirectional model
+        f_vocab = set() # taget language in unidirectional model
+        for aligned_sent in aligned_sents:
+            if (flipped):
+                e_vocab.update(aligned_sent.mots)
+                f_vocab.update(aligned_sent.words)
+            else:
+                e_vocab.update(aligned_sent.words) 
+                f_vocab.update(aligned_sent.mots)
+        # Add None to vocabulary set of target language
+        f_vocab.add(None)
+        return e_vocab, f_vocab
+        
+    def init_t(self, aligned_sents, flipped):
+        """
+        Initialize the translation parameters to be the uniform distribution over
+        all possible words thats appear in a target sentence of a sentence
+        containing the source word. Helper function.
+        """
+        t = {}
+        e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
+        count_fe = {e:{} for e in e_vocab} # count of f and e co-appearing
+        # print c_fe
+        for aligned_sent in aligned_sents:
+            if (flipped):
+                e_sent = aligned_sent.mots
+                f_sent = [None] + aligned_sent.words
+            else:
+                e_sent = aligned_sent.words
+                f_sent = [None] + aligned_sent.mots # this works, tested in IDLE
+            for e in e_sent:
+                for f in f_sent:
+                    if (f,e) in count_fe[e]: # where f given e
+                        count_fe[e][(f,e)] += 1
+                    else:
+                        count_fe[e][(f,e)] = 1 # initialize count
+        # print c_fe
+        for e in count_fe:
+            dic =  count_fe[e]
+            for pair in dic: # where pair = (f,e)
+                t[pair] = float(dic[pair]) / len(dic)
+        return t
+        # print t
         """
             # c_fe = t <- doing that makes AER go up > 0.05
 
