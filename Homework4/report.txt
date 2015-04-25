@@ -1,0 +1,119 @@
+Name: Nina Baculinao
+Uni: nb2406
+COMS 4705 Natural Language Processing
+Assignment 4 Report
+
+---------------------------------------------------------------------
+
+Part A - IBM Models 1 & 2
+
+3) For each of the first 50 sentence pairs in the corpus, 
+compute the alignment error rate (AER). Compute the average AER 
+over the first 50 sentences for each model. Compare the results 
+between the two models. Specifically, highlight a sentence pair 
+from the development set where one model outperformed the other. 
+Comment on why one model computed a more accurate alignment on this pair. 
+
+4) Experiment with the number of iterations for the EM algorithm. Determine a reasonable 
+number of iterations (in terms of processing time), which provides a lower bound on the 
+AER. Discuss how the number of iterations is related to the AER. 
+
+---------------------------------------------------------------------
+
+Part B - Berkeley Aligner
+
+4) Compute the average AER for the first 50 sentences. Compare the
+performance of the BerkeleyAligner model to the IBM models.
+
+5) Give an example of a sentence pair that the Berkeley Aligner performs
+better on than the IBM models and explain why this is the case.
+
+6) (EC) Think of a way to improve upon the Berkeley Aligner model. 
+Specifically examine the way we quantify agreement between the two 
+models. In our implementation, we computed agreement as the 
+average expected count of the two models. Implement an improved 
+Berkeley Aligner model that computes agreement in a 
+better way. There is skeleton code in EC.py (same as for B.py) Compute the average AER 
+for the first 50 sentences. Compare to the other models. Again, this part is optional but if 
+your implementation is interesting and shows improved performance, 
+you will be eligible for bonus points. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training 350 sentences of corpus, using 10 iterations of EM
+
+IBM Model 1
+---------------------------
+Average AER: 0.665
+
+IBM Model 2
+---------------------------
+Average AER: 0.650
+
+
+Training 350 sentences of corpus, using 1 iteration of EM
+
+IBM Model 1
+---------------------------
+Average AER: 0.873
+
+IBM Model 2
+---------------------------
+Average AER: 0.646
+
+
+Training 350 sentences of corpus, using 5 and 20 iterations of EM
+respectively for IBM1 and IBM2
+
+IBM Model 1
+---------------------------
+Average AER: 0.627
+
+IBM Model 2
+---------------------------
+Average AER: 0.648
+
+***
+
+FINAL RESULTS: 10 iterations
+
+IBM Model 1
+---------------------------
+Average AER: 0.678
+
+IBM Model 2
+---------------------------
+Average AER: 0.660
+
+Berkeley Aligner
+---------------------------
+Average AER: 0.561
+
+Better Berkeley Aligner
+---------------------------
+Average AER: 0.575
+
+
+real	8m44.293s
+user	8m34.964s
+sys	0m5.820s
