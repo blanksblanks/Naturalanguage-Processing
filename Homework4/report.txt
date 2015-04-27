@@ -1,5 +1,4 @@
-Name: Nina Baculinao
-Uni: nb2406
+Name: Nina Baculinao Uni: nb2406
 COMS 4705 Natural Language Processing
 Assignment 4 Report
 
@@ -7,60 +6,10 @@ Assignment 4 Report
 
 Part A - IBM Models 1 & 2
 
-3) For each of the first 50 sentence pairs in the corpus, 
-compute the alignment error rate (AER). Compute the average AER 
-over the first 50 sentences for each model. Compare the results 
-between the two models. Specifically, highlight a sentence pair 
-from the development set where one model outperformed the other. 
-Comment on why one model computed a more accurate alignment on this pair. 
-
-4) Experiment with the number of iterations for the EM algorithm. Determine a reasonable 
-number of iterations (in terms of processing time), which provides a lower bound on the 
-AER. Discuss how the number of iterations is related to the AER. 
-
----------------------------------------------------------------------
-
-Part B - Berkeley Aligner
-
-4) Compute the average AER for the first 50 sentences. Compare the
-performance of the BerkeleyAligner model to the IBM models.
-
-5) Give an example of a sentence pair that the Berkeley Aligner performs
-better on than the IBM models and explain why this is the case.
-
-6) (EC) Think of a way to improve upon the Berkeley Aligner model. 
-Specifically examine the way we quantify agreement between the two 
-models. In our implementation, we computed agreement as the 
-average expected count of the two models. Implement an improved 
-Berkeley Aligner model that computes agreement in a 
-better way. There is skeleton code in EC.py (same as for B.py) Compute the average AER 
-for the first 50 sentences. Compare to the other models. Again, this part is optional but if 
-your implementation is interesting and shows improved performance, 
-you will be eligible for bonus points. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Training 350 sentences of corpus, using 10 iterations of EM
+3) Training 350 sentences of corpus, using 10 iterations of EM, and
+computing the average AER over the first 50 sentences for each model in Part
+A outputs the following average alignment error rate (AER) results for
+Models 1 and 2:
 
 IBM Model 1
 ---------------------------
@@ -70,50 +19,287 @@ IBM Model 2
 ---------------------------
 Average AER: 0.650
 
+As expected, Model 2 performs better than Model 1 has a lower average AER,
+as it examines not only word translation probabilities (which is Model 1's
+sole concern), but also the position distortion of a word in the target
+sentence. More specifically, it takes into account not only the translation
+probability t of word f being translated from word e, but also the alignment
+probability q that a paritcular word position will be aligned to a word
+position j, given the sentence lengths l and m. 
 
-Training 350 sentences of corpus, using 1 iteration of EM
-
-IBM Model 1
----------------------------
-Average AER: 0.873
-
-IBM Model 2
----------------------------
-Average AER: 0.646
-
-
-Training 350 sentences of corpus, using 5 and 20 iterations of EM
-respectively for IBM1 and IBM2
+More specifically, we can also consider these short sentence pairs where
+Model 2 outperforms Model 1:
 
 IBM Model 1
 ---------------------------
-Average AER: 0.627
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+Alignment: 0-11 1-4 2-2 3-2 4-4 5-10 6-11 7-11 8-9 9-11
+Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+AER: 0.652173913043
 
 IBM Model 2
 ---------------------------
-Average AER: 0.648
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+Alignment: 0-6 1-1 2-2 3-6 4-4 5-10 6-6 7-11 8-9 9-11 10-12
+Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+AER: 0.416666666667
 
-***
+If you take a look at the sentence pair example above, you can see how Model
+2 computed a more accurate alignment than Model 1. While the alignments in
+Model 1 are increasing in order: 0-11 1-4 2-2 3-2 4-4 5-10 6-11 7-11 8-9 9-11
+(except for the first pair), Model 2 performs a little better by mapping the
+1-1 (the first comma), 6-6 (meinem-personal) and 10-12 (the period)
+correctly, because it combines probabilities with respect to not just the
+word translation but also the position distortion. Of note, 6-6 alignment in
+Model 2 is not in rising order, as the previous predicted alignment was
+5-10, so the model handles some distortion.  On the other hand, Model 1
+operates under the assumption that the position of any word in the target
+sentence is independent of the position of the corresponding word in the
+source sentence, or the positions of any other source language words or
+their translations. The position distortion, or tendency for a contiguous
+phrase in one language to be translated as a contiguous phrase in another
+language, is not modeled at all. 
 
-FINAL RESULTS: 10 iterations
+Another note with respect to alignments: Both models also have a tendency to
+map multiple words in the source sentence to one word in the target
+sentence, and situations in which a word in the source sentence maps to a
+multi-word phrase in the target sentence are not well-modeled. For instance,
+the correct alignment for 6 (meinem) were 6-5 and 6-6 (my personal) but IBM
+Models 1 and 2 both do no map one source word onto multiple target words.
 
-IBM Model 1
----------------------------
-Average AER: 0.678
+4) After experimenting with the number of iterations for the EM algorithm, I
+found 25 to be a reasonable number of iterations in terms of processing
+time, which provides a lower bound on the AER. I also considered 22
+iterations to be reasonable as well, though 25 does slightly better at the
+cost of less than a minute extra runtime.
 
-IBM Model 2
----------------------------
-Average AER: 0.660
+As the number of iterations increase, probability information becomes
+propagated and the error rate can only go down or stay the same. However,
+after a certain number of iterations, the AER converges at a certain point
+and no longer meaningfully decreases, as you can see from the table I
+composed below.
+
+| Iterations | IBM1  | IBM2  | Runtime |
+|------------|-------|-------|---------|
+| 1          | 0.873 | 0.646 |         |
+| 3          | 0.641 | 0.644 | 2m      |
+| 5          | 0.627 | 0.644 |         |
+| 7          | 0.629 | 0.646 |         |
+| 10         | 0.665 | 0.650 | 3m      |
+| 15         | 0.665 | 0.650 |         |
+| 20         | 0.661 | 0.648 |         |
+| 22         | 0.659 | 0.648 | 5m      |
+| 23         | 0.659 | 0.648 |         |
+| 24         | 0.659 | 0.648 |         |
+| 25*        | 0.660 | 0.649 | 6m      |
+| 30         | 0.660 | 0.649 | 8m      |
+| 35         | 0.660 | 0.649 | 8m      |
+| 50         | 0.658 | 0.648 | 12m     |
+
+The equation L(t^s,q^s) >= L(T^s-1, q^s-1) sums up the convergence behavior
+of the EM algorithm: as the number of iterations s increases, the parameter
+estimates of t^s and q^s converge to a local optimum of the log-likelihood
+function. This equation is strictly non-decreasing, at each iteration, the
+AER will either improve, or stay the same. Also, it's important to note that
+while there is a convergence point for a local optimum, the EM algorithm can
+converge to different parameter estimates depending on the initial values
+t^0 and q^0, and as we shall soon see in Part B, initialization can make a
+difference.
+
+---------------------------------------------------------------------
+
+Part B - Berkeley Aligner
+
+4) Computing the average AER over the first 50 sentences for the Berkeley
+Aligner model:
 
 Berkeley Aligner
 ---------------------------
 Average AER: 0.561
 
-Better Berkeley Aligner
+Compared to NLTK's implementations of IBM Model 1 and 2, my implementation
+of the Berkeley Aligner performed significantly better. While it is not
+quite the baseline score of 0.550 average AER, I think an average AER of
+0.561 is still a great improvement.
+
+In order to implement Berkeley Aligner, which is essentially a
+bi-directional translation model of IBM Model 2, I had to first implement
+Model 1 and Model 2. My results for IBM Model 1 (0.611) were better than the
+NLTK version (0.665), as were my results for IBM Model 2 (0.595) compared to
+the NLTK version (0.650). It's worth noting the importance of the
+initialization step, because my iterative step was very similar to the NLTK
+version, but my implementation of Models 1 and 2 performed better. In our
+case, we initialized the translation parameters to be the uniform
+distribution over all the possible words that appear in a target sentence of
+a sentence containing the source word, and initialized the alignment
+parameters to be the uniform distribution over the length of the source
+sentence. While training the two IBM Model 2s from German to English and
+English to German (which I call my flipped model), we seek alignment by
+agreement by using the average expected count with respect to the two
+models' t and q parameters.
+
+| Model                   | Avg AER |
+|-------------------------|---------|
+| IBM Model 1 (NLTK)      | 0.665   |
+| IBM Model 2 (NLTK)      | 0.650   |
+| IBM Model 1 (Mine)      | 0.611   |
+| IBM Model 2 (Mine)      | 0.595   |
+| Berkeley Aligner (Mine) | 0.561   |
+
+5) I'll use the same sentence pair as I did in Part A as an example of a
+sentence pair that the Berkeley Aligner performs better on than the IBM
+models.
+
+IBM Model 1
 ---------------------------
-Average AER: 0.575
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+Alignment: 0-11 1-4 2-2 3-2 4-4 5-10 6-11 7-11 8-9 9-11
+Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+AER: 0.652173913043
+
+IBM Model 2
+---------------------------
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+Alignment: 0-6 1-1 2-2 3-6 4-4 5-10 6-6 7-11 8-9 9-11 10-12
+Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+AER: 0.416666666667
+
+Berkeley Aligner
+---------------------------
+Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+But , Madam President , my personal request has not been met .
+Alignment: 0-6 1-4 2-2 3-6 4-4 5-8 6-5 7-7 8-9 9-11 10-12
+Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+AER: 0.333333333333
+
+In this case, Berkeley Aligner accurately aligns the second half of the
+sentence (5-8 6-5 7-7 8-9 9-11 10-12) where IBM Model 1 and 2 inaccurately
+aligned (5-10 7-11) and additionally IBM Model 1 mis-aligned (6-11). The
+Berkley Aligner was able to align the fairly difficult pairs wurde-has (5-8)
+and Wunsch-request (7-7), which IBM Model 1 and 2 could not do. By finding
+agreements between the two models even in this simplified quantification of
+agreement, we were able to reduce some of the biases inherent in
+German-English translation and alignment parameters by balancing them with
+English-German translation and alignment parameters. This was reflected both
+in the higher AER and the more correctly aligned sentence pair as shown
+above.
+
+However, the second half of the sentence is not fully aligned. While all the
+alignments are correct, some of the cases where a source word maps onto
+multiple words in the target sentences, is not covered. For instance, the
+correct alignment for 6 (meinem) were 6-5 and 6-6 (my personal) but IBM
+Models 1 and 2 both do no map one source word onto multiple target words.  I
+discussed this problem already with IBM 1 and 2, and this is a problem with
+the current state of the Berkeley Aligner as well. In the next optional
+step, I try to view intersections as a way of finding predictions both
+models agree on instead of just averaging the expected counts, and also
+attempt to fix this problem of mapping only at most 1 target word to the
+same source word. 
+
+6) (EC) In order to improve upon the Berkely Aligner mode, I tried a new way
+of quantifying agreement between the two models. In the original
+implementation, we computed agreement as the average expected count of the
+two models.
+
+In my Better Berkeley Aligner, I computed agreement in the align() method
+differently - by first calculating the best alignments with p(f|e) and
+p(e|f) where p is the combined probability of t*q, and then calculating the
+intersection and union of these alignments, choosing the highest probability
+for alignment. The short code is as follows. By first iterating through the
+wors in the target sentence, instead of the source sentence, I'm able to
+account for cases where one word in the source sentence might map to
+multiple words in the target sentences.
+
+def align(self, align_sent):
+    """
+        Use self.t which contains both t(f|e) and t(e|f) values to calculate the best
+        alignments with p(f|e) and p(e|f), then calculate the intersection and union
+        of these alignments, choosing the best
+        """
+        alignment = []
+        e_sent = align_sent.words
+    f_sent = align_sent.mots
+    l = len(e_sent)
+        m = len(f_sent)
+        for i, f_word in enumerate(f_sent):
+    p_fe = defaultdict(float)
+    p_ef = defaultdict(float)
+# Best alignment between t, or t*q
+    for j, e_word in enumerate(e_sent):
+    p_fe[(f_word, e_word)] = max(self.t[(f_word, e_word)], (self.t[(f_word, e_word)] * self.q[(j+1,i,l,m)]))
+    p_ef[(e_word, f_word)] = max(self.t[(e_word, f_word)], (self.t[(e_word, f_word)] * self.q[(i+1,j,m,l)]))
+# Best alignments with p(f|e) and p(e|f)
+    max_f_fe, max_e_fe = max(p_fe, key=p_fe.get)
+max_f_ef, max_e_ef = max(p_ef, key=p_ef.get)
+# Intersection
+    if (max_f_fe == max_e_ef and max_e_fe == max_f_ef):
+        alignment.append((e_sent.index(max_e_fe), f_sent.index(max_f_fe)))
+# Max of union
+        else:
+        max1 = p_fe[(max_f_fe,max_e_fe)]
+        max2 = p_ef[(max_f_ef,max_e_ef)]
+        if max1 >= max2:
+alignment.append((e_sent.index(max_e_fe), f_sent.index(max_f_fe)))
+    else:
+    alignment.append((e_sent.index(max_f_ef), f_sent.index(max_e_ef)))
+return AlignedSent(align_sent.words, align_sent.mots, alignment)
+
+    Better Berkeley Aligner
+    ---------------------------
+    Average AER: 0.564
+
+    The final result is, disappointingly, not better in terms of overall
+    average AER performance, and slightly worse at 0.564 compared to my
+    original 0.561. However, we can see improvements at the sentence level,
+    which is what I wanted to share and was one of my goals.
+
+    Berkeley Aligner
+    ---------------------------
+    Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+    But , Madam President , my personal request has not been met .
+    Alignment: 0-6 1-4 2-2 3-6 4-4 5-8 6-5 7-7 8-9 9-11 10-12
+    Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+    AER: 0.333333333333
+
+    Better Berkeley Aligner
+    ---------------------------
+    Dennoch , Frau Präsidentin , wurde meinem Wunsch nicht entsprochen .
+    But , Madam President , my personal request has not been met .
+    Alignment: 1-1 2-2 3-3 3-6 5-8 5-10 6-5 7-7 8-9 9-0 9-11 10-12
+    Should be: 0-0 1-1 2-2 3-3 4-4 5-8 6-5 6-6 7-7 8-9 9-10 9-11 10-12
+    AER: 0.28 
+
+    For the same sentence we've been looking at in previous cases, we have
+    an improved AER from 0.333 of the original Berkeley Aligner to the 0.28
+    we see here. The main difference is that this model was able to capture
+    the correct alignments for 3-3 and 5-8 by presenting alignments 3-3,
+    3-6, 5-8, 5-10. Although the alignments 3-6 and 5-10 are wrong, this
+    model is able to correct in some fashion the inability of the previous
+    models to handle the case where one source word mapped onto multiple
+    target words, which I thought was rather noteworthy. Had I more time, I
+    think I could've optimized this aligner and produced even better
+    results.
+
+    ---------------------------------------------------------------------
+
+    Total runtime is a little over 8 minutes, with the majority of time
+    taken by NLTK IBM Models 1 & 2:
+
+    real    8m14.293s
+    user    8m4.964s
+    sys     0m5.820s
+
+    Runtimes and AER chart:
+
+    |         | Berkeley Aligner | Better Berkeley Aligner | IBM Models 1 & 2 |
+    |---------|------------------|-------------------------|------------------|
+    | avg AER | 0.561            | 0.564                   | 0.665 & 0.650    |
+    | real    | 1m28.627s        | 1m25.601s               | 5m59.381s        |
+    | user    | 1m24.357s        | 1m23.293s               | 5m48.258s        |
+    | sys     | 0m2.216s         | 0m0.512s                | 0m7.472s         |
 
 
-real	8m44.293s
-user	8m34.964s
-sys	0m5.820s
