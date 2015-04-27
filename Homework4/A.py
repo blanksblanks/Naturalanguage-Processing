@@ -76,9 +76,9 @@ def save_model_output(aligned_sents, model, file_name):
     target = open(file_name,'w')
     for i in xrange(20):
         aligned_sent = model.align(aligned_sents[i])
-        words = (u' '.join(aligned_sent.words).encode('utf8'))
-        mots = (u' '.join(aligned_sent.mots).encode('utf8'))
-        alignment = (u' '.join(u'%s-%s' %(tup[0], tup[1]) for tup in aligned_sent.alignment).encode('utf8'))
+        words = str(aligned_sent.words).encode('utf8') # (u' '.join(aligned_sent.words).encode('utf8'))
+        mots = str(aligned_sent.mots).encode('utf8') # (u' '.join(aligned_sent.mots).encode('utf8'))
+        alignment = str(aligned_sent.alignment).encode('utf8') # (u' '.join(u'%s-%s' %(tup[0], tup[1]) for tup in aligned_sent.alignment).encode('utf8'))
         target.write(words + '\n' +  mots + '\n' + alignment + '\n\n')
         # print(words + '\n' +  mots + '\n' + alignment + '\n')
     target.close()
