@@ -42,6 +42,9 @@ class BerkeleyAligner():
         # eng -> ger
         t_flipped = {}
         q_flipped = {}
+        # for averaging
+        final_t = {}
+        final_q = {}
 
         ger_vocab, eng_vocab = self.init_vocab(aligned_sents, False)
         t = self.init_t(aligned_sents, False)
@@ -86,7 +89,6 @@ class BerkeleyAligner():
             for (j,i,l,m) in c_jilm.keys():
                 q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
             
-
             # DRY: Don't repeat yourself... yet here I am again
             c_fe_flipped = {tup:0 for tup in t_flipped.keys()}
             c_e_flipped = {e:0 for e in eng_vocab if e != None}
@@ -122,22 +124,38 @@ class BerkeleyAligner():
             for (j,i,l,m) in c_jilm_flipped.keys():
                 q_flipped[(j,i,l,m)] = float(c_jilm_flipped[(j,i,l,m)]) / float(c_ilm_flipped[(i,l,m)]) 
             
-            # TODO: FIGURE OUT HOW TO AVERAGE THE T AND Q PARAMS
 
-            '''# Update t and q
+            """# NVM, this results in high AER in the 0.588 range (0.600 for the second implementation)
+            # Average the counts
             for (f,e) in c_fe.keys():
-                t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
-                t_flipped[(e,f)] = float(c
+                try:
+                    # t[(f,e)] = ( (float(c_fe[(f,e)]) / c_e[e]) + \
+                    #               (c_fe_flipped[(e,f)] / c_e_flipped[f]) )  / 2
+                    t[(f,e)] = ( (float(c_fe[(f,e)])) + c_fe_flipped[(e,f)] / \
+                                 (c_e[e] + c_e_flipped[f]) )
+                    t_flipped[(e,f)] = t[(f,e)]
+                except KeyError:
+                    t[(f,e)] = (float(c_fe[(f,e)]) / c_e[e])
             for (j,i,l,m) in c_jilm.keys():
-                q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
-            '''
-           
-        # print t
-        final_t = {}
-        final_q = {}
+                try:
+                    # q[(j,i,l,m)] = ( (float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]) + \
+                    #                  (c_jilm_flipped[(i+1,j-1,m,l)] / c_ilm_flipped[(j-1,m,l)]) )  / 2
+                    q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j-1,m,l)])) / \
+                                       (c_ilm[(i,l,m)] + c_ilm_flipped[(j-1,m,l)]))
+                    q_flipped[(i+1,j-1,m,l)] = q[(j,i,l,m)]
+                except KeyError:
+                    q[(j,i,l,m)] = q[(j,i,l,m)]
+        self.t = t
+        self.q = q
+        return (t,q)
+        """
+
+        # Average the q and t parameters here after iterations for 0.561 AER
         for (f,e) in t.keys():
             try:
                 final_t[(f,e)] = float(t[(f,e)] + t_flipped[(e,f)]) / 2
+                # t[(f,e)] = final_t[(f,e)]
+                # t_flipped[(e,f)] = final_t[(f,e)]
             except KeyError:
                 final_t[(f,e)] = t[(f,e)]
                 # print 'Key Error for (f,e):', f, e, '->', e, f
@@ -145,12 +163,15 @@ class BerkeleyAligner():
             try:
                 # Originally, j is eng, i is ger, l is len(ger), m is len(eng)
                 # For flipped version, i+1 is ger (bc None), j-1 is eng (no None),
-                # m-1 is len(eng - None), l+1 is len(ger + None)
-                # NVM I don't consider None in the lengths l or m
+                # m is len(end), l is len(ger)
                 final_q[(j,i,l,m)] = float(q[(j,i,l,m)] + q_flipped[(i+1,j-1,m,l)]) / 2
+                # q[(j,i,l,m)] = final_q[(j,i,l,m)] 
+                # q_flipped[(i+1,j-1,m,l)] = final_q[(j,i,l,m)]
             except KeyError:
                 final_q[(j,i,l,m)] = q[(j,i,l,m)]
                 # print 'Key Error for (j,i,l,m):', j, i, l, m, '->', i+1, j-1, m, l
+                # Don't average the distortion values
+                # final_q = q
         self.t = final_t
         self.q = final_q
         print '\n'
@@ -295,88 +316,6 @@ class BerkeleyAligner():
         # t2 = t
         # q2 = q
        """
-
-    
-    def iter_step(self, aligned_sents, t, q, flipped):
-        e_vocab, f_vocab = self.init_vocab(aligned_sents, flipped)
-        c_fe = {tup:0 for tup in t.keys()}
-        c_e = {e:0 for e in e_vocab}
-        c_ilm = defaultdict(int)
-        c_jilm = defaultdict(int)
-
-        for aligned_sent in aligned_sents:
-            if (flipped):
-                e_sent = aligned_sent.mots
-                f_sent = [None] + aligned_sent.words
-            else:
-                e_sent = aligned_sent.words
-                f_sent = [None] + aligned_sent.mots
-            l = len(e_sent)
-            m = len(f_sent) - 1
-            for i in xrange(m+1):
-               # Calculate delta denominator for q(j|i,l,m)
-               f = f_sent[i]
-               delta_d = 0
-               for j in xrange(1, l+1):
-                   e = e_sent[j-1]
-                   # We can just take care of initialization of q here!
-                   if (j,i,l,m) not in q:
-                       q[(j,i,l,m)] = 1/float(l+1)
-                   delta_d += q[(j,i,l,m)] * t[(f,e)]
-               for j in xrange(1, l+1):
-                   e = e_sent[j-1]
-                   # Update q rule
-                   delta = (q[(j,i,l,m)] * t[(f,e)])/float(delta_d)
-                   c_fe[(f,e)] += delta
-                   c_e[e] += delta
-                   c_ilm[(i,l,m)] += delta
-                   c_jilm[(j,i,l,m)] += delta
-        # Update t
-        for (f,e) in c_fe.keys():
-            t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
-        for (j,i,l,m) in c_jilm.keys():
-            q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
-        
-        retval = (t, q, c_fe, c_e, c_ilm, c_jilm)
-        return retval
-
-
-
-    '''
-    count_ef = defaultdict(lambda: defaultdict(lambda: 0.0))
-    total_f = defaultdict(lambda: 0.0)
-
-    for alignSent in aligned_sents:
-        en_set = alignSent.words
-        fr_set = [None] + alignSent.mots  
-
-        # Compute normalization
-        for e in en_set:
-            total_e[e] = 0.0
-            for f in fr_set:
-                total_e[e] += t_ef[(f,e)]
-
-        # Collect counts
-        for e in en_set:
-            for f in fr_set:
-                c = t_ef[(f,e)] / total_e[e]
-                count_ef[e][f] += c
-                total_f[f] += c
-
-    # Compute the estimate probabilities
-    for f in eng_vocab:
-        for e in ger_vocab:
-            t_ef[(f,e)] = count_ef[e][f] / total_f[f]
-
-    print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n', t_ef
-    '''
-
-    def counting_dict(dictionary, key):
-        if key in dictionary:
-            dictionary[key] += 1
-        else:
-            dictionary[key] = 1
-        return dictionary
 
 def main(aligned_sents):
     ba = BerkeleyAligner(aligned_sents, 10)
