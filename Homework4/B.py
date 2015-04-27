@@ -52,7 +52,7 @@ class BerkeleyAligner():
        
 
         for i in xrange(num_iters):
-            print 'Iteration', i+1, '...'
+            # print 'Iteration', i+1, '...'
             
             c_fe = {tup:0 for tup in t.keys()}
             c_e = {e:0 for e in ger_vocab}
@@ -124,24 +124,23 @@ class BerkeleyAligner():
             for (j,i,l,m) in c_jilm_flipped.keys():
                 q_flipped[(j,i,l,m)] = float(c_jilm_flipped[(j,i,l,m)]) / float(c_ilm_flipped[(i,l,m)]) 
             
-
             """# NVM, this results in high AER in the 0.588 range (0.600 for the second implementation)
             # Average the counts
             for (f,e) in c_fe.keys():
                 try:
-                    # t[(f,e)] = ( (float(c_fe[(f,e)]) / c_e[e]) + \
-                    #               (c_fe_flipped[(e,f)] / c_e_flipped[f]) )  / 2
-                    t[(f,e)] = ( (float(c_fe[(f,e)])) + c_fe_flipped[(e,f)] / \
-                                 (c_e[e] + c_e_flipped[f]) )
+                    t[(f,e)] = ( (float(c_fe[(f,e)]) / c_e[e]) + \
+                                   (c_fe_flipped[(e,f)] / c_e_flipped[f]) )  / 2
+                    # t[(f,e)] = ( (float(c_fe[(f,e)])) + c_fe_flipped[(e,f)] / \
+                    #             (c_e[e] + c_e_flipped[f]) )
                     t_flipped[(e,f)] = t[(f,e)]
                 except KeyError:
                     t[(f,e)] = (float(c_fe[(f,e)]) / c_e[e])
             for (j,i,l,m) in c_jilm.keys():
                 try:
-                    # q[(j,i,l,m)] = ( (float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]) + \
-                    #                  (c_jilm_flipped[(i+1,j-1,m,l)] / c_ilm_flipped[(j-1,m,l)]) )  / 2
-                    q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j-1,m,l)])) / \
-                                       (c_ilm[(i,l,m)] + c_ilm_flipped[(j-1,m,l)]))
+                    q[(j,i,l,m)] = ( (float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]) + \
+                                      (c_jilm_flipped[(i+1,j-1,m,l)] / c_ilm_flipped[(j-1,m,l)]) )  / 2
+                    # q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j,m,l)])) / \
+                    #                   (c_ilm[(i,l,m)] + c_ilm_flipped[(j,m,l)]))
                     q_flipped[(i+1,j-1,m,l)] = q[(j,i,l,m)]
                 except KeyError:
                     q[(j,i,l,m)] = q[(j,i,l,m)]
@@ -164,6 +163,7 @@ class BerkeleyAligner():
                 # Originally, j is eng, i is ger, l is len(ger), m is len(eng)
                 # For flipped version, i+1 is ger (bc None), j-1 is eng (no None),
                 # m is len(end), l is len(ger)
+                # same AER if j-1 or just j
                 final_q[(j,i,l,m)] = float(q[(j,i,l,m)] + q_flipped[(i+1,j-1,m,l)]) / 2
                 # q[(j,i,l,m)] = final_q[(j,i,l,m)] 
                 # q_flipped[(i+1,j-1,m,l)] = final_q[(j,i,l,m)]
@@ -174,7 +174,7 @@ class BerkeleyAligner():
                 # final_q = q
         self.t = final_t
         self.q = final_q
-        print '\n'
+        # print '\n'
         return (final_t,final_q)
 
     def init_vocab(self, aligned_sents, flipped):
@@ -225,97 +225,6 @@ class BerkeleyAligner():
                 t[pair] = float(dic[pair]) / len(dic)
         return t
         # print t
-        """
-            # c_fe = t <- doing that makes AER go up > 0.05
-
-            # Update t
-            # count = {tup:0 for tup in t.keys()}
-            # count_e = {e:0 for e in ger_vocab}
-            # Update q
-
-            # t, q, c_fe, c_e, c_ilm, c_jilm == self.iter_step(aligned_sents, t, q, False)
-            # t2_flipped, q_flipped, c_e, c_fe, c_ilm, c_jilm == self.iter_step(aligned_sents, t, q, True)
-            # t2, q2, c_fe2, c_e2, c_ilm2, c_jilm2 == self.iter_step(aligned_sents, t2, q2, False)
-
-
-                # Update t
-                # for f in eng_sent:
-                #    sum_e = 0
-                #    for e in ger_sent:
-                #        sum_e += t[(f,e)]
-                #    for e in ger_sent:
-                #        count[(f,e)] += (t[(f,e)] / float(sum_e))
-                #        count_e[e] += (t[(f,e)] / float(sum_e))
-                # Update q
-
-
-            '''# Check new method
-            # t2, q2, c_fe2, c_e2, c_ilm2, c_jilm2 == self.iter_step(aligned_sents, t2, q2, False)
-            retval = self.iter_step(aligned_sents, t2, q2, False)
-            t2 = retval[0]
-            q2 = retval[1]
-            c_e2 = retval[2]
-            c_fe2 = retval[3]
-            c_ilm2 = retval[4]
-            c_jilm2 = retval[5]
-            print 'Are they equal? t, q, c_fe, c_e, c_ilm, c_jilm'
-            print (t2 == t), (q2 == q), (c_fe2 == c_e), (c_e2 == c_fe), (c_ilm2 == c_jilm), (c_jilm2 == c_ilm)
-            print c_fe2[u'Respekt'], c_e[u'Respekt']
-            print c_e2[(u'dimension', u'vorhanden')], c_fe[(u'dimension', u'vorhanden')]
-            print c_ilm2[(12,23,38)], c_ilm[(12,23,38)]
-            print c_jilm2[(9,4,40,37)], c_jilm[(9,4,40,37)]
-            '''
-            '''print '\n\n\n\n\n\n', c_fe2
-            print '\n\n\n\n\n\n', c_e2
-            print '\n\n\n\n\n\n', c_ilm2
-            print '\n\n\n\n\n\n', c_jilm2
-            
-            if (t2 == t):
-                print 'True'
-            else:
-                print 't2', t2, '\n\n\n\n\n\n\n\n\n', 't', t
-            if (q2 == q):
-                print 'True'
-            else:
-                print 'q2', q2, '\n\n\n\n\n\n\n\n\n', 'q', q
-            if (c_fe2 == c_fe):
-                print 'True'
-            else:
-                print 'c_fe2', c_fe2, '\n\n\n\n\n\n\n\n\n', 'c_fe', c_fe
-            if (c_e2 == c_e):
-                print 'True'
-            else:
-                print 'c_e2', c_e2, '\n\n\n\n\n\n\n\n\n', 'c_e', c_e
-            if (c_ilm2 == c_ilm):
-                print 'True'
-            else:
-                print 'c_ilm2', c_ilm2, '\n\n\n\n\n\n\n\n\n', 'c_ilm', c_ilm
-            if (c_jilm2 == c_jilm):
-                print 'True'
-            else:
-                print 'c_jilm2', c_jilm2, '\n\n\n\n\n\n\n\n\n', 't', c_jilm
-            # print 'Are they equal?', (c_fe, c_e, c_ilm, c_jilm) == self.iter_step(aligned_sents, t, q, False)
-            # print t2 == t, q2 == q, c_fe2 == c_fe, c_e == c
-            '''
-        # Initialize the alignment parameters to be the uniform distribution over the
-        # length of the source sentence
-        # Can just take care of it in the loop below
-        '''for aligned_sent in aligned_sents:
-            ger_sent = aligned_sent.words
-            eng_sent = [None] + aligned_sent.mots
-            l = len(ger_sent)
-            m = len(eng_sent)
-            for i in xrange(l):
-                # delta_d = 0
-                for j in xrange(m): # right?
-                    if (j,i,l,m) not in q:
-                        q[(j,i,l,m)] = 1/float(l+1)
-        # print q
-        '''
-
-        # t2 = t
-        # q2 = q
-       """
 
 def main(aligned_sents):
     ba = BerkeleyAligner(aligned_sents, 10)

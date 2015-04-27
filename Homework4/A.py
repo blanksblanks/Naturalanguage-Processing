@@ -12,14 +12,14 @@ from nltk.align.ibm2 import IBMModel2
 
 # Initialize IBM Model 1 and return the model.
 def create_ibm1(aligned_sents):
-    ibm1 = IBMModel1(aligned_sents, 25)
-    # ibm1 = IBMModel1(aligned_sents[:10], 20)
+    ibm1 = IBMModel1(aligned_sents, 10)
+    # convergence point: 25 iterations
     return ibm1
 
 # Initialize IBM Model 2 and return the model.
 def create_ibm2(aligned_sents):
-    ibm2 = IBMModel2(aligned_sents, 25)
-    # ibm2 = IBMModel2(aligned_sents[:10],20)
+    ibm2 = IBMModel2(aligned_sents, 10)
+    # convergence point: 25 iterations
     return ibm2
 
 # Compute the average AER for the first n sentences
@@ -30,6 +30,13 @@ def compute_avg_aer(aligned_sents, model, n):
         aligned_sent = model.align(aligned_sents[i])
         aer = aligned_sent.alignment_error_rate(aligned_sents[i])
         total += aer
+        """ Comment out to print info
+        print sentencify(aligned_sent.words)
+        print sentencify(aligned_sent.mots)
+        print 'Alignment:',  aligned_sent.alignment
+        print 'Should be:', aligned_sents[i].alignment
+        print 'AER:', aer, '\n'
+        """
     avg = total / n
     return avg
 
@@ -80,8 +87,7 @@ def save_model_output(aligned_sents, model, file_name):
 def main(aligned_sents):
     ibm1 = create_ibm1(aligned_sents)
     save_model_output(aligned_sents, ibm1, "ibm1.txt")
-    # convergence point: 25 iterations
-    avg_aer = compute_avg_aer(aligned_sents, ibm1, 10)
+    avg_aer = compute_avg_aer(aligned_sents, ibm1, 50)
 
     print ('IBM Model 1')
     print ('---------------------------')
@@ -89,8 +95,7 @@ def main(aligned_sents):
 
     ibm2 = create_ibm2(aligned_sents)
     save_model_output(aligned_sents, ibm2, "ibm2.txt")
-    # convergence point: 25 iterations
-    avg_aer = compute_avg_aer(aligned_sents, ibm2, 10)
+    avg_aer = compute_avg_aer(aligned_sents, ibm2, 50)
     
     print ('IBM Model 2')
     print ('---------------------------')

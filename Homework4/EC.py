@@ -44,6 +44,7 @@ class BetterBerkeleyAligner():
         for i, f_word in enumerate(f_sent):
             p_fe = defaultdict(float)
             p_ef = defaultdict(float)
+            # Best alignment between t, or t*q
             for j, e_word in enumerate(e_sent):
                 p_fe[(f_word, e_word)] = max(self.t[(f_word, e_word)], (self.t[(f_word, e_word)] * self.q[(j+1,i,l,m)]))
                 p_ef[(e_word, f_word)] = max(self.t[(e_word, f_word)], (self.t[(e_word, f_word)] * self.q[(i+1,j,m,l)]))
@@ -130,7 +131,7 @@ class BetterBerkeleyAligner():
        
 
         for i in xrange(num_iters):
-            print 'Iteration', i+1, '...'
+            # print 'Iteration', i+1, '...'
             
             c_fe = {tup:0 for tup in t.keys()}
             c_e = {e:0 for e in ger_vocab}
@@ -171,11 +172,11 @@ class BetterBerkeleyAligner():
                        c_jilm[(j,i,l,m)] += delta
             
             # Update t and q
-            """for (f,e) in c_fe.keys():
+            for (f,e) in c_fe.keys():
                 t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
             for (j,i,l,m) in c_jilm.keys():
                 q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
-            """
+            
 
             # DRY: Don't repeat yourself... yet here I am again
             c_fe_flipped = {tup:0 for tup in t_flipped.keys()}
@@ -216,13 +217,13 @@ class BetterBerkeleyAligner():
                        c_jilm_flipped[(j,i,l,m)] += delta
 
             # Update t and q for flipped model
-            """for (f,e) in c_fe_flipped.keys():
+            for (f,e) in c_fe_flipped.keys():
                 t_flipped[(f,e)] = float(c_fe_flipped[(f,e)] / float(c_e_flipped[e]))
             for (j,i,l,m) in c_jilm_flipped.keys():
                 q_flipped[(j,i,l,m)] = float(c_jilm_flipped[(j,i,l,m)]) / float(c_ilm_flipped[(i,l,m)]) 
-            """
+            
 
-            # Average the counts
+            """# Average the counts
             for (f,e) in c_fe.keys():
                 try:
                     t[(f,e)] = ( (float(c_fe[(f,e)]) / c_e[e]) + \
@@ -236,14 +237,14 @@ class BetterBerkeleyAligner():
                 try:
                     q[(j,i,l,m)] = ( (float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]) + \
                                      (c_jilm_flipped[(i+1,j,m,l)] / c_ilm_flipped[(j,m,l)]) )  / 2
-                    # q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j-1,m,l)])) / \
-                    #                   (c_ilm[(i,l,m)] + c_ilm_flipped[(j-1,m,l)]))
+                    # q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j,m,l)])) / \
+                    #                   (c_ilm[(i,l,m)] + c_ilm_flipped[(j,m,l)]))
                     q_flipped[(i+1,j,m,l)] = q[(j,i,l,m)]
                 except KeyError:
-                    q[(j,i,l,m)] = q[(j,i,l,m)]
-            
+                    q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]
+            """
         # print t
-        self.t = t
+        """self.t = t
         self.t.update(t_flipped)
         self.q = q
         self.q.update(q_flipped)
@@ -257,22 +258,28 @@ class BetterBerkeleyAligner():
                 final_t[(f,e)] = float(t[(f,e)] + t_flipped[(e,f)]) / 2
             except KeyError:
                 final_t[(f,e)] = t[(f,e)]
-                print 'Key Error for (f,e):', f, e, '->', e, f
         for (j,i,l,m) in q.keys():
             try:
-                # Originally, j is eng, i is ger, l is len(ger), m is len(eng)
-                # For flipped version, i+1 is ger (bc None), j-1 is eng (no None),
-                # m-1 is len(eng - None), l+1 is len(ger + None)
-                # NVM I don't consider None in the lengths l or m
                 final_q[(j,i,l,m)] = float(q[(j,i,l,m)] + q_flipped[(i+1,j-1,m,l)]) / 2
             except KeyError:
                 final_q[(j,i,l,m)] = q[(j,i,l,m)]
-                print 'Key Error for (j,i,l,m):', j, i, l, m, '->', i+1, j-1, m, l
+
+        for (f,e) in t_flipped.keys():
+            try:
+                final_t[(f,e)] = float(t_flipped[(f,e)] + t[(e,f)]) / 2
+            except KeyError:
+                final_t[(f,e)] = t_flipped[(f,e)]
+        for (j,i,l,m) in q_flipped.keys():
+            try:
+                final_q[(j,i,l,m)] = float(q_flipped[(j,i,l,m)] + q[(i+1,j-1,m,l)]) / 2
+            except KeyError:
+                final_q[(j,i,l,m)] = q_flipped[(j,i,l,m)]
         self.t = final_t
+        # self.t.update(t_flipped)
         self.q = final_q
+        # self.q.update(q_flipped)
         
-        return (final_t,final_q)
-        """
+        return (self.t,self.q)
 
 def main(aligned_sents):
     ba = BetterBerkeleyAligner(aligned_sents, 10)
