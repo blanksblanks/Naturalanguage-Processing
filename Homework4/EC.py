@@ -171,11 +171,11 @@ class BetterBerkeleyAligner():
                        c_jilm[(j,i,l,m)] += delta
             
             # Update t and q
-            for (f,e) in c_fe.keys():
+            """for (f,e) in c_fe.keys():
                 t[(f,e)] = float(c_fe[(f,e)] / float(c_e[e]))
             for (j,i,l,m) in c_jilm.keys():
                 q[(j,i,l,m)] = float(c_jilm[(j,i,l,m)]) / float(c_ilm[(i,l,m)]) 
-            
+            """
 
             # DRY: Don't repeat yourself... yet here I am again
             c_fe_flipped = {tup:0 for tup in t_flipped.keys()}
@@ -216,10 +216,31 @@ class BetterBerkeleyAligner():
                        c_jilm_flipped[(j,i,l,m)] += delta
 
             # Update t and q for flipped model
-            for (f,e) in c_fe_flipped.keys():
+            """for (f,e) in c_fe_flipped.keys():
                 t_flipped[(f,e)] = float(c_fe_flipped[(f,e)] / float(c_e_flipped[e]))
             for (j,i,l,m) in c_jilm_flipped.keys():
                 q_flipped[(j,i,l,m)] = float(c_jilm_flipped[(j,i,l,m)]) / float(c_ilm_flipped[(i,l,m)]) 
+            """
+
+            # Average the counts
+            for (f,e) in c_fe.keys():
+                try:
+                    t[(f,e)] = ( (float(c_fe[(f,e)]) / c_e[e]) + \
+                                   (c_fe_flipped[(e,f)] / c_e_flipped[f]) )  / 2
+                    # t[(f,e)] = ( (float(c_fe[(f,e)])) + c_fe_flipped[(e,f)] / \
+                    #             (c_e[e] + c_e_flipped[f]) )
+                    t_flipped[(e,f)] = t[(f,e)]
+                except KeyError:
+                    t[(f,e)] = (float(c_fe[(f,e)]) / c_e[e])
+            for (j,i,l,m) in c_jilm.keys():
+                try:
+                    q[(j,i,l,m)] = ( (float(c_jilm[(j,i,l,m)]) / c_ilm[(i,l,m)]) + \
+                                     (c_jilm_flipped[(i+1,j,m,l)] / c_ilm_flipped[(j,m,l)]) )  / 2
+                    # q[(j,i,l,m)] = ( ((float(c_jilm[(j,i,l,m)])) + (c_jilm_flipped[(i+1,j-1,m,l)])) / \
+                    #                   (c_ilm[(i,l,m)] + c_ilm_flipped[(j-1,m,l)]))
+                    q_flipped[(i+1,j,m,l)] = q[(j,i,l,m)]
+                except KeyError:
+                    q[(j,i,l,m)] = q[(j,i,l,m)]
             
         # print t
         self.t = t
