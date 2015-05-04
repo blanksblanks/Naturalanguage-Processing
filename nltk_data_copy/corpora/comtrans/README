@@ -1,0 +1,28 @@
+COMTRANS Corpus Sample
+http://www.fask.uni-mainz.de/user/rapp/comtrans
+
+Reinhard Rapp
+
+3.3% of the COMTRANS data, distributed with permission.
+
+
+The data is in giza++ format, consisting of triples of
+L1, L2, and alignments, e.g.:
+
+English-French:
+Resumption of the session
+Reprise de la session
+0-0 1-1 2-2 3-3
+
+German-English:
+Wiederaufnahme der Sitzungsperiode
+Resumption of the session
+0-0 1-1 1-2 2-3
+
+German-French:
+Wiederaufnahme der Sitzungsperiode
+Reprise de la session
+0-0 1-1 1-2 2-3
+
+
+
