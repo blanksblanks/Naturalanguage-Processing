@@ -1,3 +1,7 @@
 /home/coms4705/checkpermission nb2406 5281122421 1
 
 change homework index to check if readable to instructors script
+
+chmod 711 ~/hidden
+chmod -R 755 ~/hidden/<pin>
+
